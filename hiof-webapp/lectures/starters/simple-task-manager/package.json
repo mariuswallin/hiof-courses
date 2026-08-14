@@ -1,0 +1,49 @@
+{
+  "name": "simple-starter-task-manager",
+  "version": "1.0.0",
+  "description": "simple-starter-task-manager — webapp-prosjekt for kurset (RedwoodSDK)",
+  "main": "index.js",
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite dev",
+    "dev:init": "rw-scripts dev-init",
+    "preview": "vite preview",
+    "worker:run": "rw-scripts worker-run",
+    "clean": "npm run clean:vite",
+    "clean:vite": "rm -rf ./node_modules/.vite",
+    "release": "npm run clean && npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "lucide-react": "1.17.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-error-boundary": "6.1.2",
+    "react-server-dom-webpack": "19.2.8",
+    "rwsdk": "1.7.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.50.0",
+    "@cloudflare/workers-types": "5.20260801.1",
+    "@types/node": "~26.2.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@vitejs/plugin-react": "6.0.5",
+    "typescript": "7.0.2",
+    "vite": "8.2.1",
+    "wrangler": "4.118.0",
+    "@rolldown/plugin-babel": "0.2.3",
+    "babel-plugin-react-compiler": "1.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "workerd"
+    ]
+  }
+}

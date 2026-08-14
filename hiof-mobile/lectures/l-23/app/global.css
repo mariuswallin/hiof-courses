@@ -1,0 +1,18 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+/* Design tokens for NativeWind v5 / Tailwind v4.
+   Verdiene speiler constants/theme.ts, slik at klasser som bg-primary
+   gir samme farge som Theme.primary gjør i StyleSheet-koden. */
+@theme {
+  --color-primary: #1565c0;
+  --color-primary-100: #e3f2fd;
+  --color-primary-300: #90caf9;
+  --color-secondary: #1976d2;
+  --color-accent-100: #bbdefb;
+  --color-contrast: #ffb300;
+  --color-danger: #d32f2f;
+}

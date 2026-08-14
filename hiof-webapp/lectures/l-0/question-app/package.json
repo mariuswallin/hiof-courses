@@ -1,0 +1,13 @@
+{
+  "name": "question-app",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Frontend demo for DOM manipulation",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "8.2.1"
+  }
+}

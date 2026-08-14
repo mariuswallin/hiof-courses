@@ -1,0 +1,14 @@
+# Kopier denne til .dev.vars (gitignored) og fyll inn ekte verdier.
+#
+# Generér BETTER_AUTH_SECRET (minst 32 tegn):
+#   openssl rand -hex 32
+#
+# I prod: bruk `wrangler secret put BETTER_AUTH_SECRET` istedenfor .dev.vars.
+
+BETTER_AUTH_SECRET=""
+BETTER_AUTH_URL="http://localhost:5173"
+
+# Trengs kun for `drizzle-kit` remote push/introspect (ikke for `generate`).
+CLOUDFLARE_ACCOUNT_ID=""
+CLOUDFLARE_DATABASE_ID=""
+CLOUDFLARE_D1_TOKEN=""

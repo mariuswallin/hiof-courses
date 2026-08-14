@@ -1,0 +1,50 @@
+.question-table-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.count-highlight {
+  font-weight: 600;
+  color: #495057;
+}
+
+.filter-indicator {
+  margin-left: 8px;
+  color: #007bff;
+  font-size: 14px;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+}
+
+.no-results p:first-child {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.no-results-subtitle {
+  font-size: 14px;
+}

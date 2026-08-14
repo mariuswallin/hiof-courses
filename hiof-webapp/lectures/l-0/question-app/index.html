@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="no">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spørsmål og Svar Applikasjon</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Bytt tema">🌙</button>
+
+  <main>
+    <!-- Form section -->
+    <section class="form-section">
+      <h1>Opprett Spørsmål</h1>
+
+      <form id="question-form">
+        <div class="form-group">
+          <label for="question-text">Spørsmålstekst:</label>
+          <textarea id="question-text" name="text" required placeholder="Skriv ditt spørsmål her..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="category">Kategori:</label>
+          <select id="category" name="category" required>
+            <option value="">Velg kategori</option>
+            <option value="frontend">Frontend</option>
+            <option value="backend">Backend</option>
+            <option value="generell">Generell</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="difficulty">Vanskelighetsgrad:</label>
+          <input type="range" id="difficulty" name="difficulty" min="1" max="5" value="3">
+          <output id="difficulty-value">3</output>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Lagre</button>
+          <button type="reset" class="btn">Nullstill</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Questions display -->
+    <section>
+      <h2>Spørsmål</h2>
+
+      <div class="questions-container">
+        <div class="questions-grid" id="questions-list">
+          <!-- Questions will be rendered here -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

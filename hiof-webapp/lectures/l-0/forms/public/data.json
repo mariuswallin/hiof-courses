@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1",
+    "title": "Vårens Utstilling",
+    "artist": "Anna Nordmann",
+    "date": "2025-03-15",
+    "status": "Planlagt",
+    "description": "En feiring av vårens ankomst gjennom moderne skulptur"
+  },
+  {
+    "id": "2",
+    "title": "Abstrakte Visjoner",
+    "artist": "Per Hansen",
+    "date": "2025-04-20",
+    "status": "Aktiv",
+    "description": "Utforskning av form og farge i det abstrakte"
+  },
+  {
+    "id": "3",
+    "title": "Digitale Drømmer",
+    "artist": "Maya Olsen",
+    "date": "2025-05-10",
+    "status": "Planlagt",
+    "description": "Når teknologi møter kunst"
+  }
+]

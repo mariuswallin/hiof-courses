@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="no">
+
+<head>
+  <meta charset="UTF-8">
+  <!-- Stiler lastes først for rask visuell rendering -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Forteller nettleseren å begynne lasting tidlig -->
+  <link rel="preload" href="js/critical.js" as="script">
+  <title>Utstillingsapplikasjon</title>
+</head>
+
+<body>
+  <section id="exhibition-container">
+    <h1>Mine Utstillinger</h1>
+    <ul id="exhibition-list">
+      <!-- Utstillinger legges til her dynamisk -->
+    </ul>
+    <input type="text" id="new-exhibition-input" placeholder="Legg til ny utstilling">
+    <button id="add-exhibition-button">Legg til Utstilling</button>
+    <button id="advanced-button">Trigg avanserte funksjoner</button>
+  </section>
+  <!-- Hjelpefunksjoner lastes først -->
+  <script type="module" defer src="js/utils.js"></script>
+
+  <!-- LocalStorage-håndtering -->
+  <script type="module" defer src="js/storage.js"></script>
+
+  <!-- Hovedapplikasjon lastes sist -->
+  <script type="module" defer src="js/app.js"></script>
+
+  <!-- Lazy loading av avansert logikk -->
+  <script type="module" defer src="js/lazy.js"></script>
+
+  <!-- Analytics kan laste uavhengig -->
+  <script type="module" async src="js/analytics.js"></script>
+
+  <!-- Kritisk blir klar sist, men lastes inn først -->
+  <script defer src="js/critical.js"></script>
+</body>
+
+</html>

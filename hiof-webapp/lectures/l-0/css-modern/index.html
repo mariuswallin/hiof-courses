@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="no" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Definere muligheter for tema -->
+  <meta name="color-scheme" content="light dark">
+  <title>Moderne Utstillingsapplikasjon</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <header class="site-header">
+    <h1>Kunstgalleriets Utstillinger</h1>
+    <button type="button" class="theme-toggle" aria-label="Bytt tema">
+      <span aria-hidden="true">🌓</span>
+    </button>
+  </header>
+
+  <main class="main-content">
+    <section class="exhibition-section">
+      <h2>Aktive utstillinger</h2>
+
+      <section class="exhibition-grid" id="exhibition-list">
+
+        <!-- Utstillinger legges inn her -->
+      </section>
+
+      <form class="add-exhibition-form">
+        <h3>Legg til ny utstilling</h3>
+        <div class="input-group">
+          <label for="exhibition-title">Utstillingstittel</label>
+          <input type="text" id="exhibition-title" name="title" required placeholder="Skriv inn tittel..." />
+        </div>
+
+        <div class="input-group">
+          <label for="exhibition-description">Beskrivelse</label>
+          <textarea id="exhibition-description" name="description" rows="3"
+            placeholder="Valgfri beskrivelse..."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit">Legg til</button>
+          <button type="reset">Nullstill</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

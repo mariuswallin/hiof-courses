@@ -1,0 +1,44 @@
+/* src/app/styles.css */
+
+main {
+  max-width: 760px;
+  margin: 0rem auto;
+  width: 100%;
+}
+
+.student-filter-wrapper {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.student-filter {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  background-color: #fff;
+}
+
+.student-dashboard {
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  background-color: #f9f9f9;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+  }
+
+  .no-results {
+    padding: 1rem;
+    text-align: center;
+    color: #666;
+  }
+}

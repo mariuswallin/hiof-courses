@@ -1,0 +1,17 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+/* Design tokens. Uten disse er bg-primary en klasse som ikke finnes,
+   og du får ingen feilmelding — bare manglende farge. */
+@theme {
+  --color-primary: #1565c0;
+  --color-primary-100: #e3f2fd;
+  --color-primary-300: #90caf9;
+  --color-secondary: #1976d2;
+  --color-accent-100: #bbdefb;
+  --color-contrast: #ffb300;
+  --color-danger: #d32f2f;
+}

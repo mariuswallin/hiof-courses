@@ -1,0 +1,13 @@
+{
+  "name": "loading",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Frontend demo for loading",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "8.2.1"
+  }
+}
