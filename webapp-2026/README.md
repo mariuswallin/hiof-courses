@@ -82,7 +82,14 @@ Mappen `drizzle/migrations/` ligger **ikke** i repoet — den må genereres før
 ```bash
 pnpm db:generate      # lager migrasjoner fra src/db/schema.ts
 pnpm db:migrate:dev   # kjører dem mot lokal D1
-pnpm seed             # demo-brukere og innlegg (valgfritt)
+```
+
+```bash
+# demo-brukere og innlegg (valgfritt)
+# Mac / linux
+pnpm seed           
+# Windows
+pnpm seed:windows
 ```
 
 ### 6. Kjør
