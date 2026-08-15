@@ -105,6 +105,35 @@ describe("getFeed", () => {
   });
 });
 
+describe("likedByMe", () => {
+  // u2 liket p1 i beforeEach.
+  it("er true for innlegg leseren har liket", async () => {
+    const feed = await getFeed(db, "u2");
+    expect(feed.find((p) => p.id === "p1")!.likedByMe).toBe(true);
+    expect(feed.find((p) => p.id === "p2")!.likedByMe).toBe(false);
+  });
+
+  it("er false for en annen innlogget bruker", async () => {
+    const feed = await getFeed(db, "u1");
+    expect(feed.every((p) => p.likedByMe === false)).toBe(true);
+  });
+
+  it("er false for utloggede", async () => {
+    const feed = await getFeed(db);
+    expect(feed.every((p) => p.likedByMe === false)).toBe(true);
+  });
+
+  it("følger leseren også i profil- og hashtag-feeden", async () => {
+    expect((await getPostsByAuthor(db, "u1", "u2"))[0]!.likedByMe).toBe(true);
+    expect((await getFeedByHashtag(db, "koding", "u2"))[0]!.likedByMe).toBe(
+      true,
+    );
+    expect((await getFeedByHashtag(db, "koding", "u1"))[0]!.likedByMe).toBe(
+      false,
+    );
+  });
+});
+
 describe("getFeedForUser", () => {
   it("viser egne + fulgtes innlegg", async () => {
     // u1 follows u2 → sees both p1 (own) and p2 (bob)

@@ -27,10 +27,19 @@ export type FeedItem = {
   author: FeedAuthor;
   likeCount: number;
   commentCount: number;
+  /**
+   * Has the signed-in viewer liked this post? `false` for signed-out users.
+   * This must come from the server: the heart is part of the first render, so
+   * the client cannot guess it — see PostActions.tsx.
+   */
+  likedByMe: boolean;
 };
 
-// Shared select shape for feed rows, so every feed query maps the same way.
-function feedSelect() {
+/**
+ * Shared select shape for feed rows, so every feed query maps the same way.
+ * `viewerId` er den som ser på feeden (null = utlogget).
+ */
+function feedSelect(viewerId: string | null) {
   return {
     id: posts.id,
     text: posts.text,
@@ -48,6 +57,13 @@ function feedSelect() {
     commentCount: sql<number>`(
       SELECT COUNT(*) FROM ${comments} WHERE ${comments.postId} = ${posts.id}
     )`,
+    // EXISTS gir 0/1 i SQLite. For not logged-in users, we return 0 (false) for likedByMe.
+    likedByMe: viewerId
+      ? sql<number>`EXISTS (
+          SELECT 1 FROM ${likes}
+          WHERE ${likes.postId} = ${posts.id} AND ${likes.userId} = ${viewerId}
+        )`
+      : sql<number>`0`,
   };
 }
 
@@ -64,6 +80,7 @@ type FeedRow = {
   authorAvatarKey: string | null;
   likeCount: number;
   commentCount: number;
+  likedByMe: number;
 };
 
 function toFeedItem(r: FeedRow): FeedItem {
@@ -82,6 +99,7 @@ function toFeedItem(r: FeedRow): FeedItem {
     },
     likeCount: Number(r.likeCount),
     commentCount: Number(r.commentCount),
+    likedByMe: Number(r.likedByMe) === 1,
   };
 }
 
@@ -90,9 +108,10 @@ async function runFeedQuery(
   db: Db,
   where: SQL | undefined,
   limit: number,
+  viewerId: string | null,
 ): Promise<FeedItem[]> {
   const rows = (await db
-    .select(feedSelect())
+    .select(feedSelect(viewerId))
     .from(posts)
     .innerJoin(user, eq(user.id, posts.authorId))
     .where(where)
@@ -103,11 +122,18 @@ async function runFeedQuery(
 }
 
 /** Global feed — newest first, excludes soft-deleted posts. */
-export async function getFeed(db: Db, limit = 50): Promise<FeedItem[]> {
-  return runFeedQuery(db, isNull(posts.deletedAt), limit);
+export async function getFeed(
+  db: Db,
+  viewerId: string | null = null,
+  limit = 50,
+): Promise<FeedItem[]> {
+  return runFeedQuery(db, isNull(posts.deletedAt), limit, viewerId);
 }
 
-/** Personal feed — own posts plus posts from people you follow. */
+/**
+ * Personal feed — own posts plus posts from people you follow. Her er `userId`
+ * både filteret og leseren, så den trenger ingen egen `viewerId`.
+ */
 export async function getFeedForUser(
   db: Db,
   userId: string,
@@ -118,11 +144,15 @@ export async function getFeedForUser(
     .from(follows)
     .where(eq(follows.followerId, userId))
     .all();
-  const followedIds = [userId, ...followedRows.map((f: { id: string }) => f.id)];
+  const followedIds = [
+    userId,
+    ...followedRows.map((f: { id: string }) => f.id),
+  ];
   return runFeedQuery(
     db,
     and(isNull(posts.deletedAt), inArray(posts.authorId, followedIds)),
     limit,
+    userId,
   );
 }
 
@@ -139,6 +169,7 @@ function escapeLike(value: string): string {
 export async function getFeedByHashtag(
   db: Db,
   tag: string,
+  viewerId: string | null = null,
   limit = 50,
 ): Promise<FeedItem[]> {
   const needle = `%${escapeLike(JSON.stringify(tag.toLowerCase()))}%`;
@@ -149,6 +180,7 @@ export async function getFeedByHashtag(
       sql`${posts.hashtagsJson} LIKE ${needle} ESCAPE '\\'`,
     ),
     limit,
+    viewerId,
   );
 }
 
@@ -156,12 +188,14 @@ export async function getFeedByHashtag(
 export async function getPostsByAuthor(
   db: Db,
   authorId: string,
+  viewerId: string | null = null,
   limit = 50,
 ): Promise<FeedItem[]> {
   return runFeedQuery(
     db,
     and(isNull(posts.deletedAt), eq(posts.authorId, authorId)),
     limit,
+    viewerId,
   );
 }
 
@@ -172,6 +206,7 @@ export async function getPostsByAuthor(
  */
 export async function getTrendingPosts(
   db: Db,
+  viewerId: string | null = null,
   limit = 10,
 ): Promise<FeedItem[]> {
   const ranked = await db
@@ -187,12 +222,11 @@ export async function getTrendingPosts(
     db,
     and(isNull(posts.deletedAt), inArray(posts.id, ids)),
     limit,
+    viewerId,
   );
   // Keep the snapshot order — the SQL above returns newest first.
   const order = new Map<string, number>(ids.map((id, index) => [id, index]));
-  return items.sort(
-    (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0),
-  );
+  return items.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 }
 
 export type Profile = {

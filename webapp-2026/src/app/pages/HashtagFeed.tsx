@@ -7,7 +7,7 @@ import { PostCard } from "@/app/components/PostCard";
 export async function HashtagFeed({ tag }: { tag: string }) {
   const { ctx } = requestInfo;
   const userId = ctx.session?.userId ?? null;
-  const feed = await getFeedByHashtag(db, tag);
+  const feed = await getFeedByHashtag(db, tag, userId);
 
   return (
     <div className="space-y-4">

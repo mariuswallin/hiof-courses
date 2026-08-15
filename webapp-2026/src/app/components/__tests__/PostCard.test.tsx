@@ -31,6 +31,7 @@ function makeFeedItem(overrides: Partial<FeedItem> = {}): FeedItem {
     },
     likeCount: 3,
     commentCount: 1,
+    likedByMe: false,
     ...overrides,
   };
 }

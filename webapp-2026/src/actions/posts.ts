@@ -1,5 +1,10 @@
+"use server";
 // src/actions/posts.ts — server actions for posts, including embedding
 // indexing and R2 cleanup.
+//
+// NB: "use server" må stå først i fila. rwsdk leter bare i de første 512
+// tegnene, så et langt kommentarblokk foran direktivet gjør at fila ikke
+// registreres som server-modul.
 //
 // Every action below checks the session itself, and that is not redundant with
 // the `requireAuth` middleware. An action is dispatched as
@@ -9,7 +14,6 @@
 // rwsdk does reject action POSTs from a foreign origin, but that is CSRF
 // defense, not authorization: any signed-in caller gets through it.
 // Enforced by src/test/__tests__/security.actions-auth.test.ts.
-"use server";
 import { requestInfo } from "rwsdk/worker";
 import { env } from "cloudflare:workers";
 import { and, eq } from "drizzle-orm";

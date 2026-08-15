@@ -28,6 +28,7 @@ export function PostCard({
         postId={post.id}
         likeCount={post.likeCount}
         commentCount={post.commentCount}
+        likedByMe={post.likedByMe}
         canDelete={currentUserId === post.author.id}
       />
     </article>

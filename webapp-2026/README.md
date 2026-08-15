@@ -47,7 +47,22 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 npx wrangler login
 ```
 
-Nødvendig fordi `AI` og `VECTORIZE` er satt til `remote: true` i `wrangler.jsonc` — de har ingen lokal emulering og går alltid mot Cloudflare.
+Nødvendig fordi `AI` og `VECTORIZE` er satt til `remote: true` i `wrangler.jsonc` — de har ingen lokal emulering og går alltid mot Cloudflare. Alternativt må de kommenteres ut for lokal utvikling i `wrangler.jsonc`:
+
+```jsonc
+  // "ai": {
+  //   "binding": "AI",
+  //   "remote": true
+  // },
+  // "vectorize": [
+  //   {
+  //     "binding": "VECTORIZE",
+  //     "index_name": "kvitter-posts-index",
+  //     "remote": true
+  //   }
+  // ],
+```
+Da trenger du heller ikke å logge inn.
 
 ### 4. Opprett ressursene
 
@@ -76,7 +91,9 @@ pnpm seed             # demo-brukere og innlegg (valgfritt)
 pnpm dev
 ```
 
-Åpne <http://localhost:5173>. Lag en ekte bruker via `/register` — seed-brukerne kan ikke logge inn.
+Verify at dev-serveren kjører på <http://localhost:5174>. Hvis den kjører på en annen må BETTER_AUTH_URL i `.dev.vars` oppdateres tilsvarende ellers får du ikke laget bruker / logget inn.
+
+Åpne <http://localhost:5174>. Lag en ekte bruker via `/register` — seed-brukerne kan ikke logge inn.
 
 ---
 
@@ -99,7 +116,7 @@ Vil du bare se appen kjøre: gjør steg 1, 2, 5 og hopp over Vectorize/R2.
 
 | Kommando | Gjør |
 | --- | --- |
-| `pnpm dev` | Utviklingsserver på :5173 |
+| `pnpm dev` | Utviklingsserver på :5174 |
 | `pnpm build` | Bygger |
 | `pnpm preview` | Forhåndsvis bygget versjon |
 | `pnpm check` | Genererer worker-typer + typesjekker |
@@ -131,11 +148,12 @@ Husk å oppdatere `BETTER_AUTH_URL` og `PUBLIC_URL` i `wrangler.jsonc` til prod-
 
 ## Windows
 
-Alt fungerer på Windows, men noen ting må gjøres litt annerledes.
+Alt fungerer på Windows, men noen ting kan det hende du må gjøres litt annerledes.
 
 **Før du starter**
 
-- Installer Node med [fnm](https://github.com/Schniz/fnm) eller [nvm-windows](https://github.com/coreybutler/nvm-windows), ikke fra Microsoft Store.
+- Installer Node 22.12+ (LTS anbefalt) og pnpm 10.16+ (11.x anbefalt). Sjekk med `node -v` og `pnpm -v`
+- For å installere pnpm google / KI dette for å se relevante ressurser
 - Får du `pnpm : File ... cannot be loaded because running scripts is disabled` i PowerShell:
   ```powershell
   Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
@@ -144,6 +162,8 @@ Alt fungerer på Windows, men noen ting må gjøres litt annerledes.
 - `git config --global core.autocrlf input` — ellers ryker `scripts/release.sh` på CRLF.
 
 **Kommandoer som ikke finnes på Windows**
+
+Ikke verifisert av meg da jeg ikke har Windows, men her er noen forslag (fra KI)
 
 | I dokumentasjonen | På Windows (PowerShell) |
 | --- | --- |

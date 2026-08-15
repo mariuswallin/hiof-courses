@@ -15,9 +15,12 @@ export const postsRoutes = prefix("/api/posts", [
   route("/", async ({ request, ctx }) => {
     if (request.method === "GET") {
       const author = new URL(request.url).searchParams.get("author");
+      // `likedByMe` follows the caller's session, so an anonymous GET always
+      // gets false.
+      const viewerId = ctx.session?.userId ?? null;
       const feed = author
-        ? await getPostsByAuthor(db, author)
-        : await getFeed(db);
+        ? await getPostsByAuthor(db, author, viewerId)
+        : await getFeed(db, viewerId);
       return Response.json({ posts: feed });
     }
 

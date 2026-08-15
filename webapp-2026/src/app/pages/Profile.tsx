@@ -27,7 +27,7 @@ export async function Profile({ username }: { username: string }) {
   // Posts and follow status are independent once we have the profile — fetch
   // them in parallel to avoid a waterfall.
   const [posts, followRow] = await Promise.all([
-    getPostsByAuthor(db, profile.id),
+    getPostsByAuthor(db, profile.id, viewerId),
     viewerId && !isOwn
       ? db
           .select()

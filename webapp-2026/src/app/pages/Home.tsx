@@ -8,7 +8,7 @@ import { PostCard } from "@/app/components/PostCard";
 export async function Home() {
   const { ctx } = requestInfo;
   const userId = ctx.session?.userId ?? null;
-  const feed = await getFeed(db);
+  const feed = await getFeed(db, userId);
 
   return (
     <div className="space-y-4">

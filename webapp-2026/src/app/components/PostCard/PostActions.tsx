@@ -8,20 +8,28 @@ export function PostActions({
   postId,
   likeCount,
   commentCount,
+  likedByMe,
   canDelete,
 }: {
   postId: string;
   likeCount: number;
   commentCount: number;
+  likedByMe: boolean;
   canDelete: boolean;
 }) {
-  const [liked, setLiked] = useState(false);
+  // Seeded from the server (see FeedItem.likedByMe). Starting at `false` would
+  // reset the filled heart on every page load, even for posts you have liked.
+  const [liked, setLiked] = useState(likedByMe);
   const [count, setCount] = useState(likeCount);
   const [isPending, start] = useTransition();
 
   function onLike() {
     start(async () => {
       const res = await toggleLike(postId);
+      // TODO: signed-out users get `{ ok: false, error: "Login required" }`
+      // here and the click silently does nothing. This should prompt for
+      // login instead — e.g. redirect to /login?next=<current path>, or open
+      // a login dialog — so the user learns why the like did not register.
       if (!res.ok) return;
       setLiked(res.liked);
       setCount((c) => c + (res.liked ? 1 : -1));
@@ -45,6 +53,11 @@ export function PostActions({
       >
         {liked ? "♥" : "♡"} {count}
       </button>
+      {/*
+        Counter only — deliberately not a button. The `addComment` server
+        action in src/actions/posts.ts is implemented and tested, but no UI
+        calls it yet: there is no comment list and no comment form.
+      */}
       <span className="text-muted">💬 {commentCount}</span>
       <div className="flex-1" />
       {canDelete && (

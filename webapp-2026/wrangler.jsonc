@@ -9,7 +9,9 @@
   // `compatibility_date` pins runtime behaviour — moving it forward can change
   // the semantics of existing code, so bump it deliberately and redeploy.
   "compatibility_date": "2026-05-14",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   // Static files. rwsdk expects this binding to exist; the directory is public/.
   "assets": {
     "binding": "ASSETS",
@@ -26,8 +28,8 @@
   // never go here. BETTER_AUTH_SECRET is set with `wrangler secret put`
   // (locally: .dev.vars).
   "vars": {
-    "BETTER_AUTH_URL": "http://localhost:5173",
-    "PUBLIC_URL": "http://localhost:5173"
+    "BETTER_AUTH_URL": "http://localhost:5174",
+    "PUBLIC_URL": "http://localhost:5174"
   },
   // D1 (SQLite at the edge). Create it with `wrangler d1 create kvitter-db`
   // and paste the returned id here.
@@ -40,7 +42,8 @@
       // Drizzle v1 writes each migration into its own folder
       // (`<timestamp>_<name>/migration.sql`). Without this pattern wrangler
       // finds no migrations at all and reports "No migrations to apply".
-      "migrations_pattern": "drizzle/migrations/*/migration.sql"
+      "migrations_pattern": "drizzle/migrations/*/migration.sql",
+      "remote": false
     }
   ],
   // Workers AI — hashtag suggestions and the embeddings behind semantic
@@ -49,21 +52,21 @@
   // therefore leaves your own machine, so a slow link can trip TIMEOUT_MS in
   // src/routes/ai.ts. Without the binding /api/ai/hashtags answers 503 and the
   // rest of the app keeps working.
-  "ai": {
-    "binding": "AI",
-    "remote": true
-  },
+  // "ai": {
+  //   "binding": "AI",
+  //   "remote": true
+  // },
   // Vectorize — the vector index for semantic search / RAG. The 768 dimensions
   // must match the embedding model (@cf/google/embeddinggemma-300m); vectors
   // of any other size are rejected on insert. Create the index first:
   //   wrangler vectorize create kvitter-posts-index --dimensions=768 --metric=cosine
-  "vectorize": [
-    {
-      "binding": "VECTORIZE",
-      "index_name": "kvitter-posts-index",
-      "remote": true
-    }
-  ],
+  // "vectorize": [
+  //   {
+  //     "binding": "VECTORIZE",
+  //     "index_name": "kvitter-posts-index",
+  //     "remote": true
+  //   }
+  // ],
   // R2 — object storage for avatars and post images. `preview_bucket_name` is
   // the bucket `pnpm dev` writes to, so local experiments never touch the
   // deployed data. Create the bucket first:
@@ -80,7 +83,10 @@
   // the string — so they must match the constants in src/scheduled/index.ts
   // exactly, character for character.
   "triggers": {
-    "crons": ["0 3 * * *", "0 */4 * * *"]
+    "crons": [
+      "0 3 * * *",
+      "0 */4 * * *"
+    ]
   },
   // Rate limiting — an abuse brake on the endpoints that cost money. This is a
   // RUNTIME binding, not a zone feature: it works on workers.dev, where the
@@ -99,7 +105,10 @@
       // that costs money per call.
       "name": "AI_LIMITER",
       "namespace_id": "1001",
-      "simple": { "limit": 10, "period": 60 }
+      "simple": {
+        "limit": 10,
+        "period": 60
+      }
     },
     {
       // Image upload. Counts per user id rather than IP (see media.ts): the
@@ -107,7 +116,10 @@
       // several people share a single NAT address.
       "name": "UPLOAD_LIMITER",
       "namespace_id": "1003",
-      "simple": { "limit": 10, "period": 60 }
+      "simple": {
+        "limit": 10,
+        "period": 60
+      }
     },
     {
       // Sign-in and sign-up — the calls that create rows and cost D1 reads.
@@ -116,7 +128,10 @@
       // throttled here; they run on every page view (see routes/auth.ts).
       "name": "AUTH_LIMITER",
       "namespace_id": "1004",
-      "simple": { "limit": 20, "period": 60 }
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
     }
   ]
 }
