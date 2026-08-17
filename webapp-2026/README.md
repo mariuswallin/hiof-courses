@@ -82,7 +82,14 @@ Mappen `drizzle/migrations/` ligger **ikke** i repoet — den må genereres før
 ```bash
 pnpm db:generate      # lager migrasjoner fra src/db/schema.ts
 pnpm db:migrate:dev   # kjører dem mot lokal D1
-pnpm seed             # demo-brukere og innlegg (valgfritt)
+```
+
+```bash
+# demo-brukere og innlegg (valgfritt)
+# Mac / linux
+pnpm seed           
+# Windows
+pnpm seed:windows
 ```
 
 ### 6. Kjør
@@ -111,6 +118,115 @@ Appen degraderer pent hvis en binding mangler:
 Vil du bare se appen kjøre: gjør steg 1, 2, 5 og hopp over Vectorize/R2.
 
 ---
+
+## WSL (Windows Subsystem for Linux. Valgfritt)
+
+Dersom du bruker Windows, kan det fra tid til annen dukke opp problemer 
+med RedwoodSDK. Det anbefales, for dere som ønsker å teste applikasjonens 
+AI-søk og semantiske søk, å kjøre applikasjonen via WSL i stedet for 
+direkte i Windows.
+
+### Installering av WSL
+
+```bash
+wsl --install # Kjør via cmd eller PowerShell som administrator
+```
+
+Dette installerer WSL2 samt en Ubuntu-distribusjon på maskinen din 
+(standard distro, du kan velge et annet distro ved behov). 
+Når installasjonen er ferdig, må du restarte maskinen.
+
+Når maskinen starter opp igjen, åpnes en terminal som ber deg opprette 
+et brukernavn og passord for WSL-kontoen din. Dette brukernavnet/passordet 
+er lokalt for WSL og trenger ikke være det samme som Windows-kontoen din.
+
+### Verifisere installasjonen
+
+For å sjekke at alt er satt opp riktig, kan du kjøre:
+
+```bash
+wsl -l -v
+```
+
+### Oppdatere pakker
+
+Åpne Wsl:
+
+```bash 
+wsl # I cmd eller powershell
+```
+
+Første gang du åpner Ubuntu-terminalen, anbefales det å oppdatere 
+pakkelisten:
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+### Installere Node i WSL
+
+Når man bruker WSL anbefales det å installere Node via NVM
+(Node Version Manager) inne i WSL, i stedet for å bruke en Windows-installasjon:
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+source ~/.bashrc
+nvm install --lts
+```
+
+### Åpne prosjektet i WSL med VSCode
+
+1. Installer utvidelsen WSL i VSCode.
+2. Klon eller flytt prosjektet ditt til hjemmeområdet i WSL 
+   (f.eks. `~/prosjekter/`), ikke under `/mnt/c/...`. Dette gir 
+   betydelig bedre filsystem-ytelse.
+
+```bash 
+cd # Sender deg til rot filen av WSL maskinen "~$"
+mkdir prosjekter # Lager en mappe for prosjektene dine
+cd prosjekter # Sender deg inn i mappa
+git clone https://github.com/mariuswallin/hiof-courses.git
+# Når repository er klonet kan du gå til webapp-2026 mappen
+cd hiof-courses/webapp-2026
+# Herfra, dersom du gjør følgende kommando:
+ls
+# Vil du se at vi har prosjekt mappen klar.
+```
+
+3. Nå som du er i prosjekt mappen skriv:
+
+```bash
+code .
+```
+Dette åpner VS Code koblet direkte mot WSL miljøet.
+Dersom du nå leser README direkte fra en annen plass du klonet
+prosjektet kan du stenge dette vinduet. Du vil se nede i
+venstre hjørnet av VSCode at du er koblet til 
+WSL i riktig code editor.
+
+### WSL ferdig installert
+Nå som du har installert WSL kan du gå tilbake til
+toppen av README for instruks på hvordan du setter i gang
+prosjektet.
+
+
+### Vanlige feil og løsninger
+
+- **Treg ytelse / lang installasjonstid:** Sjekk at prosjektet ligger i 
+  WSL sitt eget filsystem (f.eks. `~$/prosjekter/hiof-courses`) og ikke på 
+  `/mnt/c/prosjekter/hiof-courses`, som er tregere å lese/skrive til.
+
+- **`localhost` fungerer ikke i nettleseren:** WSL2 videresender som 
+  regel `localhost` automatisk til Windows. Fungerer det ikke, prøv å 
+  bruke IP-adressen WSL oppgir (kjør `hostname -I` inne i WSL), eller 
+  restart WSL med `wsl --shutdown` etterfulgt av at du åpner terminalen på nytt.
+
+- **Feil Node-versjon:** Sjekk med `node -v` at du kjører Node inne i 
+  WSL og ikke en Windows-installasjon som "lekker" inn via PATH.
+
+- **Maskinen ble treg etter installasjon av WSL:** Husk å skru av WSL etter bruk.
+  WSL er en virituel maskin som tar ganske store ressurser for å kjøre.
+  Så når du er ferdig for dagen, kjør kommandoen `wsl --shutdown`.
 
 ## Scripts
 

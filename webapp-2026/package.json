@@ -14,6 +14,7 @@
     "types": "tsc",
     "check": "npm run generate && npm run types",
     "seed": "rwsdk worker-run ./scripts/seed.ts",
+    "seed:windows": "node ./scripts/run-seed-windows.mjs",
     "index:posts": "rwsdk worker-run ./scripts/index-existing-posts.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate:dev": "wrangler d1 migrations apply DB --local",
