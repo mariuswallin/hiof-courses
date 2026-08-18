@@ -20,6 +20,11 @@ Expo Router + NativeWind + TanStack Query/Form, med Appwrite som backend.
 > `node-linker=hoisted` i `.npmrc`. Med npm/yarn linkes to kopier av
 > `expo-file-system` og appen krasjer ved oppstart.
 
+> **Ingen globalt installert `expo-cli`.**
+> Den gamle globale CLI-en kaprer `expo`-kommandoen og gir feil SDK og
+> bundling som ikke starter. `npm ls -g --depth=0` → `npm uninstall -g expo-cli`.
+> Bruk `npx expo` i prosjektet i stedet.
+
 ---
 
 ## Kom i gang
@@ -116,39 +121,17 @@ Se `package.json` for nøyaktige versjoner.
 **iOS er ikke mulig på Windows.** Bruk Android-emulator eller en fysisk
 Android-enhet. Alt annet fungerer.
 
-**Oppsett**
+Fullt Windows-oppsett — Developer Mode, lange stier, `ANDROID_HOME`, Git Bash,
+Defender-unntak og feiltabell — står i [`../../OPPSETT.md`](../../OPPSETT.md).
+Gjør det ferdig **før** du kjører `pnpm install` her.
 
-1. Installer Node med [fnm](https://github.com/Schniz/fnm) eller
-   [nvm-windows](https://github.com/coreybutler/nvm-windows) — ikke fra Microsoft Store.
-2. Installer [Android Studio](https://developer.android.com/studio), åpne
-   SDK Manager og installer Android SDK + en emulator-image.
-3. Sett `ANDROID_HOME` (typisk `C:\Users\<deg>\AppData\Local\Android\Sdk`) og
-   legg `platform-tools` i `PATH`.
-4. **Slå på Developer Mode** (Innstillinger → System → For utviklere). Metro og
-   pnpm bruker symlinks, og uten dette feiler install/bundling.
-5. **Slå på lange stier** — React Native har svært dype mapper og sprenger
-   260-tegnsgrensen:
-   ```powershell
-   # PowerShell som administrator
-   Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name LongPathsEnabled -Value 1
-   git config --global core.longpaths true
-   ```
-6. Legg repoet på kort sti (`C:\dev\...`) og **ikke i OneDrive**.
-
-**Vanlige feil**
+Det som er spesielt for l-30:
 
 | Symptom | Fiks |
 | --- | --- |
-| `pnpm : running scripts is disabled` | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` i PowerShell |
 | `cp .env.example .env` finnes ikke | `Copy-Item .env.example .env`, eller bruk Git Bash |
-| `ENAMETOOLONG` / `EPERM` under install | Lange stier + Developer Mode ikke slått på (punkt 4 og 5) |
-| Metro finner ikke moduler | `pnpm start --clear` |
-| Emulator svarer ikke | `adb devices` — start emulatoren fra Android Studio først |
-| Install/build er ekstremt tregt | Legg til `node_modules` og `android` som unntak i Windows Defender |
-
-**Tips:** installer [Git for Windows](https://gitforwindows.org/) og kjør
-kommandoene i **Git Bash** — da fungerer `cp`, `rm -rf` og resten som i
-dokumentasjonen.
+| `ENAMETOOLONG` / `EPERM` under install | Dette prosjektet har `node-linker=hoisted` og dype stier — lange stier og Developer Mode må være på |
+| `npx expo run:android` finner ikke SDK-en | `ANDROID_HOME` er ikke satt, se OPPSETT.md |
 
 ---
 
@@ -161,3 +144,8 @@ dokumentasjonen.
 | Tomme data fra Appwrite | Sjekk at `.env` er fylt ut og at Metro er startet på nytt (`pnpm start --clear`). |
 | Feil pakkeversjoner | `npx expo install --check` og godta forslagene. |
 | Rar iOS-build | `rm -rf ios/build` og `npx expo run:ios` på nytt. |
+| `java.io.IOException: Failed to download remote update` | Brannmur/nett blokkerer Metro på port 8081. Se [`../../OPPSETT.md`](../../OPPSETT.md) punkt 3. |
+| Rare SDK- eller bundling-feil rett etter install | Global `expo-cli`. Avinstaller den, se «Krav» over. |
+
+Generelt oppsett, cache-nullstilling og Expo Go-versjoner:
+[`../../OPPSETT.md`](../../OPPSETT.md).

@@ -19,7 +19,8 @@ npx expo start
 ```
 
 Trykk `i` for iOS Simulator, `a` for Android Emulator, eller skann QR-koden med
-Expo Go. Merk at Expo Go for SDK 56 ikke ligger i app-butikkene — se leksjon 5.
+Expo Go. Merk at Expo Go for SDK 56 ikke ligger i app-butikkene — last ned
+APK-en fra [expo.dev/go](https://expo.dev/go). Se «Oppsett og feilsøking» nederst.
 
 Kopier mappa før du koder, så beholder du et rent utgangspunkt:
 
@@ -57,3 +58,20 @@ Fra repo-rota:
 node scripts/check-syntax.mjs starters      # sekunder, ingen install
 ./scripts/check-types.sh starters/starter-basic starters/starter-advanced
 ```
+
+---
+
+## Oppsett og feilsøking
+
+Før første kjøring:
+
+- Expo Go må være bygget for **SDK 56**. Versjonen i Play Store kan være låst til
+  en eldre SDK selv om den sier «nyeste versjon» — last ned APK-en for SDK 56 fra
+  [expo.dev/go](https://expo.dev/go).
+- Ingen globalt installert `expo-cli`. Sjekk `npm ls -g --depth=0`, fjern med
+  `npm uninstall -g expo-cli`, og kjør `npx expo` lokalt i stedet.
+- Windows: Developer Mode og lange stier slått på, repoet på kort sti utenfor
+  OneDrive.
+
+Full guide, brannmur-feil («Failed to download remote update») og feiltabell:
+[`../OPPSETT.md`](../OPPSETT.md).

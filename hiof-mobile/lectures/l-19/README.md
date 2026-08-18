@@ -50,3 +50,20 @@ pnpm start
 - `text-lg/8` for line-height (slash-separator)
 
 Se [`docs/tailwind-v4-changes.md`](https://tailwindcss.com/docs/v4-beta) for full liste.
+
+---
+
+## Oppsett og feilsøking
+
+Før første kjøring:
+
+- Expo Go må være bygget for **SDK 56**. Versjonen i Play Store kan være låst til
+  en eldre SDK selv om den sier «nyeste versjon» — last ned APK-en for SDK 56 fra
+  [expo.dev/go](https://expo.dev/go).
+- Ingen globalt installert `expo-cli`. Sjekk `npm ls -g --depth=0`, fjern med
+  `npm uninstall -g expo-cli`, og kjør `npx expo` lokalt i stedet.
+- Windows: Developer Mode og lange stier slått på, repoet på kort sti utenfor
+  OneDrive.
+
+Full guide, brannmur-feil («Failed to download remote update») og feiltabell:
+[`../../OPPSETT.md`](../../OPPSETT.md).
