@@ -23,7 +23,10 @@ export default defineConfig({
   reporter: "list",
   use: {
     baseURL: BASE_URL,
-    trace: "on-first-retry",
+    // Trace on failure only. "on-first-retry" would never produce anything
+    // locally, because retries are 0 outside CI. Open one with:
+    //   pnpm exec playwright show-trace test-results/<mappe>/trace.zip
+    trace: "retain-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: process.env.E2E_BASE_URL

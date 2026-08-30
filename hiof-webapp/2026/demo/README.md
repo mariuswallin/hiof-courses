@@ -468,6 +468,9 @@ pnpm dev
 | `pnpm seed` | Legg inn testdata |
 | `pnpm test` / `pnpm test:watch` / `pnpm test:coverage` | Vitest |
 | `pnpm test:e2e` | Playwright (starter dev-serveren selv) |
+| `pnpm test:e2e:ui` | Playwright i grafisk modus med tidslinje |
+| `pnpm test:e2e:headed` | Playwright med synlig nettleser |
+| `pnpm test:e2e:debug` | Playwright Inspector, steg for steg |
 | `pnpm lint` | `tsc --noEmit` |
 | `pnpm generate` | Regenerér `worker-configuration.d.ts` fra `wrangler.jsonc` |
 | `pnpm preview` | Kjør det bygde resultatet lokalt |
@@ -618,6 +621,8 @@ overlate det til `JSON.stringify`, så wire-formatet bestemmes ett sted.
 in-memory SQLite som kjører de samme migrasjonene som D1, så skjemaet er
 identisk med produksjon. Oppskriften ligger i [`src/test/README.md`](src/test/README.md).
 
+### E2E med Playwright
+
 `pnpm test:e2e` kjører Playwright i ekte nettleser mot en dev-server den
 starter selv. Den dekker det Vitest ikke når: at rammeverket faktisk kjører
 server-actionen i nettleseren, at drag and drop virker med både mus og
@@ -631,16 +636,70 @@ pnpm migrate:dev                        # e2e-testene trenger et migrert skjema
 pnpm test:e2e
 ```
 
-Har du allerede noe på port 5173, velg en annen:
+#### Se testene kjøre
+
+Testene kjører usynlig som standard. Fire måter å se hva som skjer:
+
+| Kommando | Hva du får |
+| --- | --- |
+| `pnpm test:e2e:ui` | Grafisk kjører med tidslinje, watch-modus og tidsreise i DOM. Start her. |
+| `pnpm test:e2e:headed` | Nettleseren synlig, i sanntid |
+| `pnpm test:e2e:debug` | Playwright Inspector: pause, steg for steg, plukk selektorer |
+| `pnpm exec playwright show-trace <fil>` | Spill av en ferdig kjøring i etterkant |
+
+I UI-modus ser du hvert steg med skjermbilde før og etter, DOM-en slik den var
+i det øyeblikket, nettverkskall og konsoll. Det er den raskeste veien til å
+forstå hvorfor en test feiler.
+
+Vil du se det sakte:
+
+```bash
+pnpm test:e2e:headed -- --slowmo 500 -g "reorders tasks"
+```
+
+`-g` kjører bare testene som matcher teksten.
+
+#### Traces
+
+`playwright.config.ts` har `trace: "retain-on-failure"`, så en trace lagres når
+en test feiler. Playwright skriver ut kommandoen du trenger:
+
+```
+attachment #2: trace (application/zip)
+test-results/<mappe>/trace.zip
+    pnpm exec playwright show-trace test-results/<mappe>/trace.zip
+```
+
+Vil du ha trace fra en kjøring som gikk bra, be om det eksplisitt:
+
+```bash
+pnpm exec playwright test --trace on -g "reorders tasks"
+```
+
+Merk at `on-first-retry`, som er Playwrights standard, aldri gir deg noe
+lokalt: `retries` er 0 utenfor CI, så det skjer ingen retry å lagre fra.
+
+`test-results/` er gitignorert.
+
+#### Porten
+
+Er 5173 opptatt av noe annet, velg en ledig:
 
 ```bash
 E2E_PORT=5199 pnpm test:e2e
+E2E_PORT=5199 pnpm test:e2e:ui
 ```
 
-Merk at testen venter på hydrering (`waitForLoadState("networkidle")`) før den
-klikker Save. Uten det rekker Playwright å klikke på en knapp React ennå ikke
-har tatt over, og nettleseren gjør en vanlig form-submit i stedet for å kjøre
-server-actionen.
+Kjører du mot en app som allerede står, eller mot en deployet URL, sett
+`E2E_BASE_URL` i stedet. Da starter Playwright ingen server selv.
+
+#### Hydrering
+
+Testene venter på `waitForLoadState("networkidle")` før de klikker. Uten det
+rekker Playwright å trykke på en knapp React ennå ikke har tatt over, og
+nettleseren gjør en vanlig form-submit i stedet for å kjøre server-actionen.
+Det er en felle du garantert treffer hvis du skriver egne tester mot RSC-sider.
+
 
 ---
 
