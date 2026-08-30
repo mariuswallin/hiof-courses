@@ -1,0 +1,44 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "simple-start",
+  "main": "src/worker.tsx",
+  // Pins runtime behaviour. Moving it forward can change the semantics of
+  // existing code, so bump it deliberately and redeploy.
+  "compatibility_date": "2026-05-14",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "public"
+  },
+  // head_sampling_rate 1 logs every request, so `wrangler tail` shows the
+  // whole picture. Affordable at this traffic level.
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  // Public vars. Anyone who can reach the worker can read these, so nothing
+  // secret belongs here. SEED_TOKEN starts as a placeholder: change it, and
+  // move it to `wrangler secret put SEED_TOKEN` before deploying anywhere.
+  "vars": {
+    "SEED_TOKEN": "12345"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "simple-start",
+      "database_id": "__change_me__",
+      "migrations_dir": "drizzle/migrations",
+      // Drizzle v1 puts each migration in its own folder. Without this
+      // pattern wrangler finds nothing and reports "No migrations to apply".
+      "migrations_pattern": "drizzle/migrations/*/migration.sql"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "simple-start"
+    }
+  ]
+}

@@ -14,6 +14,7 @@ ikke her i roten.
 | [`student-dashboard/`](student-dashboard) | RedwoodSDK + Tailwind demo | Node |
 | [`tasks/`](tasks) | RedwoodSDK + Drizzle/D1, kjøres i Docker | Node + Docker |
 | [`lectures/`](lectures) | Én mappe per forelesning (`l-0`, `l-06` … `l-22`) | Node, lokal D1 fra `l-06` |
+| [`2026/demo/`](2026/demo) | RedwoodSDK + Drizzle v1/D1 på 2026-stacken: RSC vs. klient vs. server actions, REST-API i lag, Vitest + Playwright | Node |
 
 ---
 

@@ -1,0 +1,6 @@
+allowBuilds:
+  better-sqlite3: true
+  esbuild: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - '@testing-library/user-event@14.6.4'
