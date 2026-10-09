@@ -1,0 +1,17 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+/* Design tokens for NativeWind v5 and Tailwind v4.
+   The values mirror constants/theme.ts, so bg-primary and Theme.primary
+   give the same colour. */
+@theme {
+  --color-primary: #1565c0;
+  --color-primary-light: #e3f2fd;
+  --color-secondary: #1976d2;
+  --color-contrast: #ffb300;
+  --color-danger: #d32f2f;
+  --color-muted: #6b7280;
+}

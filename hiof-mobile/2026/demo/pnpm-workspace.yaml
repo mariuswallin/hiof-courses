@@ -1,0 +1,18 @@
+# This project requires pnpm. See README for why npm and yarn do not work here.
+
+overrides:
+  # @tailwindcss/postcss and @expo/metro-config resolve different lightningcss
+  # versions. The JS wrapper and the native binary must agree, or NativeWind's
+  # CSS fails at bundle time with:
+  #   failed to deserialize; expected an object-like struct named Specifier
+  # 1.30.1 is the version lecture l-30 builds with.
+  lightningcss: "1.30.1"
+
+  # react-native-appwrite@0.32.0 depends on the legacy expo-file-system@18.
+  # Without this, two copies of a native module get linked. Force the SDK 57
+  # version everywhere, and let the patch below point appwrite at the legacy
+  # entry point instead.
+  expo-file-system: "57.0.6"
+
+patchedDependencies:
+  react-native-appwrite@0.32.0: patches/react-native-appwrite@0.32.0.patch

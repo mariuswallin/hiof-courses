@@ -20,6 +20,7 @@ De fire tingene som feiler oftest:
 | Mappe | Hva |
 | --- | --- |
 | `lectures/l-01` … `l-30` | Én mappe per leksjon, ferdig kode |
+| `2026/demo/` | Samlet tasks-app på SDK 57: auth, kamera, reordering, tester |
 | `starters/` | Utgangspunkt for live-demo (`starter-basic`, `starter-advanced`) |
 | `dag-1/` | Demo fra dag 1 |
 | `shop*/`, `student-*/` | Demoprosjekter brukt underveis |
