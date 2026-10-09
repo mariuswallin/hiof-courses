@@ -1,0 +1,241 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "85eb7e1f-e18e-407f-b659-db6b8f6fac02",
+  "prevIds": [
+    "7122c4c1-e6fb-4d2b-9d3b-e2c1415a9862"
+  ],
+  "ddl": [
+    {
+      "name": "users",
+      "entityType": "tables"
+    },
+    {
+      "name": "tasks",
+      "entityType": "tables"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "email",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "description",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "due_date",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "completed",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "published",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "sort_order",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "reminder_sent_at",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "columns": [
+        "user_id"
+      ],
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_tasks_user_id_users_id_fk",
+      "entityType": "fks",
+      "table": "tasks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "users_pk",
+      "table": "users",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "tasks_pk",
+      "table": "tasks",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "idx_tasks_user_id",
+      "entityType": "indexes",
+      "table": "tasks"
+    },
+    {
+      "columns": [
+        {
+          "value": "completed",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "completed_idx",
+      "entityType": "indexes",
+      "table": "tasks"
+    },
+    {
+      "columns": [
+        {
+          "value": "sort_order",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sort_order_idx",
+      "entityType": "indexes",
+      "table": "tasks"
+    },
+    {
+      "columns": [
+        {
+          "value": "due_date",
+          "isExpression": false
+        },
+        {
+          "value": "reminder_sent_at",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "due_date_reminder_idx",
+      "entityType": "indexes",
+      "table": "tasks"
+    },
+    {
+      "columns": [
+        "email"
+      ],
+      "nameExplicit": false,
+      "name": "users_email_unique",
+      "entityType": "uniques",
+      "table": "users"
+    }
+  ],
+  "renames": []
+}

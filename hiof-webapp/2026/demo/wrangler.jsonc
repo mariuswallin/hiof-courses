@@ -35,6 +35,20 @@
       "migrations_pattern": "drizzle/migrations/*/migration.sql"
     }
   ],
+  // Cron triggers. Always UTC, never local time — 07:00 here is 09:00 in
+  // Norway in the summer and 08:00 in the winter.
+  //
+  // All expressions fire the SAME `scheduled` handler, which discriminates on
+  // `event.cron`, so these strings must match the constants in
+  // src/scheduled/index.ts exactly.
+  //
+  // Triggers are only active in a deployed worker. `pnpm dev` never fires
+  // them by itself — see "Cron" in README.md for how to run the job locally.
+  "triggers": {
+    "crons": [
+      "0 7 * * *"
+    ]
+  },
   "r2_buckets": [
     {
       "binding": "R2",

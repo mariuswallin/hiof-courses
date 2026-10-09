@@ -61,6 +61,7 @@ function makeTask(id: string, name: string, order: number): Task {
     completed: false,
     published: true,
     order,
+    reminderSentAt: null,
   };
 }
 

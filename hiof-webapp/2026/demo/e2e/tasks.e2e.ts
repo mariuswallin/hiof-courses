@@ -86,7 +86,7 @@ test.describe("tasks", () => {
         .locator('[data-testid="task-row"]')
         .evaluateAll((rows) => rows.map((row) => row.dataset.taskId));
 
-    expect(await ids()).toEqual(["1", "2"]);
+    expect(await ids()).toEqual(["1", "2", "3"]);
 
     // dnd-kit ships a keyboard sensor by default: Space lifts the item, the
     // arrow keys move it, Space drops it. This is also the accessible path.
@@ -95,12 +95,12 @@ test.describe("tasks", () => {
     await page.keyboard.press("ArrowDown");
     await page.keyboard.press("Space");
 
-    await expect.poll(ids).toEqual(["2", "1"]);
+    await expect.poll(ids).toEqual(["2", "1", "3"]);
 
     // Reload to prove the order was persisted and is not just optimistic
     // client state.
     await page.reload({ waitUntil: "networkidle" });
-    expect(await ids()).toEqual(["2", "1"]);
+    expect(await ids()).toEqual(["2", "1", "3"]);
   });
 
   test("reorders tasks by dragging with the mouse", async ({ page }) => {
@@ -127,10 +127,10 @@ test.describe("tasks", () => {
     });
     await page.mouse.up();
 
-    await expect.poll(ids).toEqual(["2", "1"]);
+    await expect.poll(ids).toEqual(["2", "1", "3"]);
 
     await page.reload({ waitUntil: "networkidle" });
-    expect(await ids()).toEqual(["2", "1"]);
+    expect(await ids()).toEqual(["2", "1", "3"]);
   });
 
   test("shows tasks in the list", async ({ page }) => {
@@ -144,17 +144,21 @@ test.describe("tasks", () => {
   });
 
   test("returns every task when no published parameter is given", async ({ request }) => {
-    // The seed data has one published task (id 1) and one draft (id 2).
+    // The seed data has two published tasks (ids 1 and 3) and one draft
+    // (id 2). Task 3 is the one that is deliberately past its due date, for
+    // the cron job — see "Cron" in README.md.
     const alle = await request.get("/api/v1/tasks");
     const body = (await alle.json()) as { data: { id: string }[] };
-    expect(body.data.map((t) => t.id).sort()).toEqual(["1", "2"]);
+    expect(body.data.map((t) => t.id).sort()).toEqual(["1", "2", "3"]);
 
     const publisert = await request.get("/api/v1/tasks?published=true");
     expect(
       ((await publisert.json()) as { data: { id: string }[] }).data.map(
         (t) => t.id
       )
-    ).toEqual(["1"]);
+      // Not sorted here on purpose: findMany orders by due_date, and task 3 is
+      // the overdue one, so it comes first. The assertion documents that.
+    ).toEqual(["3", "1"]);
 
     const kladd = await request.get("/api/v1/tasks?published=false");
     expect(

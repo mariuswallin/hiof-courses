@@ -32,6 +32,7 @@ const task: Task = {
   completed: false,
   published: true,
   order: 0,
+  reminderSentAt: null,
 };
 
 const user = { id: 1, name: "Kari", email: "kari@test.local", isAdmin: false };

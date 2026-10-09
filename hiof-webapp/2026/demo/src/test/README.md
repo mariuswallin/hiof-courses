@@ -36,6 +36,7 @@ Integrasjonstestene i `src/test/__tests__/`:
 | `tasks.action.test.ts` | `editTaskAction` mot databasen |
 | `tasks.edge-cases.test.ts` | Tom database, defaults, fremmednøkkel, cascade, SQL i id-er |
 | `tasks.reorder.test.ts` | Reordering: posisjoner, `MAX + 1`, 404 ved ukjent id, 400 ved duplikater |
+| `tasks.scheduled.test.ts` | Cron-jobben: filtrene, idempotens, retry ved feilet e-post. Se «Cron» i [`README.md`](../../README.md) |
 
 ## Malen
 

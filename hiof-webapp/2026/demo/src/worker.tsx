@@ -15,6 +15,7 @@ import TaskEdit from "./features/tasks/pages/TaskEdit";
 import TaskEditOld from "./features/tasks/pages/TaskEditOld";
 import TaskSortable from "./features/tasks/pages/TaskSortable";
 import { MainLayout } from "./components/Layout";
+import { scheduled } from "./scheduled";
 
 /**
  * The user as the app sees it on `ctx`: the database row plus the fields that
@@ -81,7 +82,7 @@ const handleErrors = except((error, { request }) => {
   });
 });
 
-export default defineApp([
+const app = defineApp([
   setCommonHeaders(),
   handleErrors,
   fakeSetUserContext, // Run for all routes
@@ -163,3 +164,11 @@ export default defineApp([
     ]),
   ]),
 ]);
+
+/**
+ * A Worker has more than one entry point. `fetch` answers HTTP; `scheduled`
+ * is what Cloudflare calls on the cron triggers in wrangler.jsonc, with no
+ * request and no user involved. `defineApp` only builds the fetch side, so
+ * the default export is assembled by hand here.
+ */
+export default { fetch: app.fetch, scheduled };

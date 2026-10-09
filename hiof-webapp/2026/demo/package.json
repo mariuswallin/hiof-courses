@@ -1,7 +1,7 @@
 {
   "name": "demo",
   "version": "1.0.0",
-  "description": "demo \u2014 webapp-prosjekt for kurset (RedwoodSDK + Drizzle/D1 + Tailwind)",
+  "description": "demo — webapp-prosjekt for kurset (RedwoodSDK + Drizzle/D1 + Tailwind)",
   "main": "index.js",
   "type": "module",
   "keywords": [],
@@ -40,7 +40,7 @@
     "dotenv": "17.4.2",
     "drizzle-orm": "1.0.0-rc.4",
     "lucide-react": "1.17.0",
-    "nanoid": "5.1.11",
+    "nanoid": "5.1.16",
     "ohash": "2.0.11",
     "react": "19.2.8",
     "react-dom": "19.2.8",

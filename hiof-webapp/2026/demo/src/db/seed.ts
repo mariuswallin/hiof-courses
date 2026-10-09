@@ -39,6 +39,7 @@ export const seedData = async (env?: Env) => {
         completed: false,
         published: true,
         order: 0,
+        reminderSentAt: null,
       },
       {
         id: "2",
@@ -49,6 +50,21 @@ export const seedData = async (env?: Env) => {
         completed: false,
         published: false,
         order: 1,
+        reminderSentAt: null,
+      },
+      {
+        // Deliberately overdue and unfinished, so the cron job in
+        // src/scheduled/ has something to find right after a seed. See
+        // "Cron" in README.md.
+        id: "3",
+        name: "Task 3",
+        description: "Over fristen, ikke fullfort",
+        dueDate: new Date(Date.now() - 172800 * 1000), // Two days ago
+        userId: user1.id,
+        completed: false,
+        published: true,
+        order: 2,
+        reminderSentAt: null,
       },
     ];
 

@@ -18,6 +18,7 @@ const row: Task = {
   completed: false,
   published: true,
   order: 3,
+  reminderSentAt: null,
 };
 
 describe("mapping in", () => {

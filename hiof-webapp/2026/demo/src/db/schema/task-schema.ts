@@ -23,11 +23,20 @@ export const tasks = sqliteTable(
     // SQL. Drizzle quotes identifiers, so `order` would work, but raw SQL in
     // migrations and hand written queries would need quoting too.
     order: integer("sort_order").notNull().default(0),
+    // When the overdue reminder for this task was e-mailed, or NULL if it has
+    // not been sent. This column is what makes the cron job in
+    // src/scheduled/overdueReminders.ts idempotent: the job only picks rows
+    // where it is NULL, and stamps it as soon as the mail goes out. Without
+    // it, every run would mail the same overdue task again.
+    reminderSentAt: integer("reminder_sent_at", { mode: "timestamp" }),
   },
   (table) => [
     index("idx_tasks_user_id").on(table.userId),
     index("completed_idx").on(table.completed),
     index("sort_order_idx").on(table.order),
+    // The cron job filters on exactly these two columns. Without the index it
+    // would scan the whole table on every run.
+    index("due_date_reminder_idx").on(table.dueDate, table.reminderSentAt),
   ]
 );
 

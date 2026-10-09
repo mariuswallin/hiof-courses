@@ -18,6 +18,10 @@ side, så du kan se hva hver teknikk koster og gir.
 | `/api/v1/tasks` | REST-API: routes → controller → service → repository, med Zod og mappere |
 | `/test/*` | Wildcard-rute (`params.$0`) |
 
+I tillegg har appen et inngangspunkt som ikke er en rute i det hele tatt: en
+**cron-jobb** som hver morgen sender e-post om oppgaver som har gått over
+fristen uten å bli fullført. Se [Cron](#cron--jobber-som-kjører-på-klokka).
+
 ---
 
 ## Oversikt
@@ -47,7 +51,20 @@ men det er **ikke Node.js**. Det betyr i praksis:
 
 Kontrakten er enkel: filen eksporterer et objekt med en `fetch`-funksjon som
 tar en `Request` og returnerer en `Response`. Det er nøyaktig det `defineApp`
-lager i bunnen av `src/worker.tsx`.
+lager.
+
+`fetch` er ikke det eneste inngangspunktet. Cloudflare kaller også
+**`scheduled`**, på klokka, uten at noen har sendt en request. Derfor ser
+bunnen av `src/worker.tsx` slik ut:
+
+```ts
+const app = defineApp([ /* ... */ ]);
+
+export default { fetch: app.fetch, scheduled };
+```
+
+Se [Cron](#cron--jobber-som-kjører-på-klokka) for hva som ligger bak
+`scheduled`.
 
 #### Bindinger: slik når Workeren ut
 
@@ -69,6 +86,11 @@ hver endring i `wrangler.jsonc`.
 | `SEED_TOKEN` | Vanlig variabel fra `vars` | `worker.tsx`, seed-ruten |
 | `ASSETS` | Statiske filer fra `public/` | Ikke direkte i kode. rwsdk forventer at bindingen finnes |
 | `R2` | Objektlagring for filer | **Ingen steder.** Deklarert og klar til bruk, men demoen laster ikke opp noe |
+
+`wrangler.jsonc` deklarerer også **`triggers.crons`**. Det er ikke en binding
+— ingenting injiseres i `env` — men det er den samme ideen: en linje i
+konfigurasjonen som avgjør når Cloudflare kaller koden din. Se
+[Cron](#cron--jobber-som-kjører-på-klokka).
 
 To ting å være klar over her:
 
@@ -332,6 +354,10 @@ kjenner databasen. Ingen av dem vet noe om laget over seg.
 flowchart TD
     W["worker.tsx<br/>ruter og feilhaandtering"]
 
+    W --> Sched["scheduled/index.ts<br/>cron-dispatcher"]
+    Sched --> Rem["scheduled/overdueReminders.ts"]
+    Rem --> Mail["lib/email.ts"]
+    Rem --> DB
     W --> Doc["app/Document.tsx"]
     W --> Head["app/headers.ts"]
     W --> Lay["components/Layout.tsx"]
@@ -363,7 +389,9 @@ flowchart TD
 
 | Fil | Hva den gjør |
 | --- | --- |
-| `worker.tsx` | Selve appen. Setter opp middleware-kjeden, `except()`, alle rutene, og typen `AppContext` som gir `ctx.user` i resten av koden. Start her. |
+| `worker.tsx` | Selve appen. Setter opp middleware-kjeden, `except()`, alle rutene, og typen `AppContext` som gir `ctx.user` i resten av koden. Eksporterer `{ fetch, scheduled }`. Start her. |
+| `scheduled/index.ts` | Cron-dispatcheren. Alle cron-uttrykkene treffer samme `scheduled`, så den skiller dem på `event.cron`. |
+| `scheduled/overdueReminders.ts` | Selve jobben: finn oppgaver over fristen som ikke er fullført, send e-post, stemple raden. |
 | `client.tsx` | Fire linjer som starter React i nettleseren. Trengs for at klientkomponenter skal bli interaktive. |
 | `app/Document.tsx` | HTML-skallet rundt alle sider: `<html>`, `<head>`, script-taggen som laster `client.tsx`. |
 | `app/headers.ts` | Sikkerhetsheadere på alle svar, inkludert CSP. |
@@ -436,6 +464,7 @@ Servicen og repositoryet lages med fabrikkfunksjoner
 | --- | --- |
 | `types/result.ts` | `Result` og `ServerResult`. Diskriminert union på `success`, så TypeScript snevrer inn til `data` eller `error`. |
 | `lib/id.ts` | `createId()`, en nanoid-wrapper. |
+| `lib/email.ts` | `mailer.send()`. Logger bare i demoen, men har formen en ekte leverandør ville hatt. |
 | `app/lib/cn.ts` | Slår sammen Tailwind-klasser der den siste vinner ved konflikt. |
 | `context/AuthContext.tsx` | React context for brukeren. |
 | `hooks/useAuth.tsx` | Leser konteksten, og kaster tydelig hvis provideren mangler. |
@@ -467,6 +496,7 @@ pnpm dev
 | `pnpm migrate:dev` / `pnpm migrate:prod` | Kjør migrasjonene lokalt / i prod |
 | `pnpm seed` | Legg inn testdata |
 | `pnpm test` / `pnpm test:watch` / `pnpm test:coverage` | Vitest |
+| `pnpm test tasks.scheduled` | Bare cron-testene (filtrerer på filnavn) |
 | `pnpm test:e2e` | Playwright (starter dev-serveren selv) |
 | `pnpm test:e2e:ui` | Playwright i grafisk modus med tidslinje |
 | `pnpm test:e2e:headed` | Playwright med synlig nettleser |
@@ -495,6 +525,14 @@ Drizzle v1. To ting er verdt å merke seg hvis du har brukt Drizzle før:
 Hver migrasjon får sin egen mappe (`drizzle/migrations/<timestamp>_<navn>/`).
 Derfor har `wrangler.jsonc` en `migrations_pattern` — uten den finner wrangler
 ingen migrasjoner.
+
+To kolonner på `tasks` er verdt en kommentar fordi navnet i TypeScript og i SQL
+ikke er det samme, eller fordi de finnes for noe annet enn skjermbildet:
+
+| TypeScript | SQL | Hvorfor |
+| --- | --- | --- |
+| `order` | `sort_order` | `order` er reservert ord i SQL |
+| `reminderSentAt` | `reminder_sent_at` | Gjør cron-jobben idempotent. NULL til e-posten er sendt. Se [Cron](#cron--jobber-som-kjører-på-klokka) |
 
 ### Rekkefølge og drag and drop
 
@@ -615,11 +653,260 @@ overlate det til `JSON.stringify`, så wire-formatet bestemmes ett sted.
 
 ---
 
+## Cron — jobber som kjører på klokka
+
+Alt annet i denne appen starter med at noen ber om noe. En cron-jobb gjør ikke
+det. Cloudflare kaller Workeren på et tidspunkt du har bestemt, uten request,
+uten bruker og uten nettleser.
+
+Demoen bruker det til én ting: **sende e-post om oppgaver som har gått over
+fristen uten å bli fullført**. Det er et typisk eksempel, fordi ingen besøker
+en side for å bli minnet på noe de har glemt.
+
+### Delene
+
+| Fil | Ansvar |
+| --- | --- |
+| `wrangler.jsonc` → `triggers.crons` | Når jobben kjører |
+| `src/worker.tsx` | Eksporterer `scheduled` ved siden av `fetch` |
+| `src/scheduled/index.ts` | Dispatcher: hvilket cron-uttrykk var det? |
+| `src/scheduled/overdueReminders.ts` | Selve arbeidet |
+| `src/lib/email.ts` | `mailer.send()` — logger i demoen, ekte leverandør i praksis |
+
+```mermaid
+flowchart LR
+    Clock["Cloudflare<br/>07:00 UTC"] --> Sched["scheduled(event, env, ctx)"]
+    Sched -->|"event.cron"| Disp{"hvilken jobb?"}
+    Disp -->|"0 7 * * *"| Job["sendOverdueReminders()"]
+    Job --> Q[("D1: finn forfalte,<br/>ufullforte, uvarslede")]
+    Q --> Mail["mailer.send()"]
+    Mail --> Stamp[("D1: sett<br/>reminder_sent_at")]
+```
+
+Registreringen er tre linjer i `wrangler.jsonc`:
+
+```jsonc
+"triggers": {
+  "crons": ["0 7 * * *"]
+}
+```
+
+og ett ekstra felt på default-eksporten i `src/worker.tsx`:
+
+```ts
+export default { fetch: app.fetch, scheduled };
+```
+
+### Fire ting som er lette å gå på
+
+**Alle cron-uttrykk treffer samme handler.** Legger du til et uttrykk til, blir
+det ikke en ny funksjon — det blir det samme `scheduled`-kallet med en annen
+`event.cron`. Derfor `switch`-en i `src/scheduled/index.ts`, og derfor må
+strengene der matche `wrangler.jsonc` tegn for tegn. Ett ekstra mellomrom, og
+jobben kjører aldri. Du får en `console.warn`, ikke en feil.
+
+**Cron er alltid UTC.** `0 7 * * *` er 09:00 norsk tid om sommeren og 08:00 om
+vinteren. Det finnes ingen tidssone-innstilling.
+
+**Bruk `ctx.waitUntil`.** Handleren returnerer med én gang, og uten `waitUntil`
+kan runtimen rive ned kjøringen midt i utsendingen.
+
+**Jobben må være idempotent.** Cloudflare garanterer *minst* én kjøring, ikke
+nøyaktig én, og du kommer selv til å trigge den for hånd mens du tester. Kjører
+jobben to ganger, skal ikke folk få to e-poster.
+
+Det siste er grunnen til kolonnen `reminder_sent_at` på `tasks`:
+
+```ts
+where(
+  and(
+    lt(tasks.dueDate, now),                                       // over fristen
+    or(isNull(tasks.completed), eq(tasks.completed, false)),      // ikke fullfort
+    isNull(tasks.reminderSentAt),                                 // ikke varslet
+  ),
+)
+```
+
+Raden stemples først **etter** at e-posten faktisk gikk ut. Feiler sendingen,
+står `reminder_sent_at` fortsatt tom, og neste kjøring prøver på nytt. Det er
+derfor `mailer.send` returnerer `false` i stedet for å kaste: én ugyldig adresse
+skal ikke stoppe resten av bunken.
+
+Legg merke til `isNull(tasks.completed)` også. `completed` har `default(false)`,
+men ikke `notNull()`, så kolonnen er nullbar — og i SQL er `completed = 0`
+*usant* for NULL, ikke sant. Uten den ene ekstra sjekken ville rader med NULL
+aldri blitt varslet om, helt stille.
+
+`reminder_sent_at` lekker forresten ikke ut av API-et. `toTaskDto` i
+`tasksMappers.ts` lister opp feltene den sender, så en ny kolonne blir ikke
+automatisk med i svaret. Det er hele poenget med en ut-mapper.
+
+---
+
+### Slik tester du det
+
+Tre nivåer, fra raskest til mest ekte.
+
+#### 1. Vitest — den du kjører hele tiden
+
+Dette er hovedmåten, og den er mulig fordi `scheduled` ikke gjør noe selv: den
+kaller `sendOverdueReminders()`, som er en helt vanlig funksjon. Da trenger du
+verken Worker-runtime, cron-trigger eller e-postleverandør for å teste
+oppførselen.
+
+```bash
+pnpm test
+pnpm test tasks.scheduled          # bare cron-testene
+```
+
+Testene ligger i [`src/test/__tests__/tasks.scheduled.test.ts`](src/test/__tests__/tasks.scheduled.test.ts)
+og bruker nøyaktig de samme tre mockene som resten av integrasjonstestene:
+
+```ts
+vi.mock("@/db", () => import("@/test/db-mock"));
+vi.mock("rwsdk/worker", () => import("@/test/worker-mock"));
+vi.mock("cloudflare:workers", () => import("@/test/env-mock"));
+```
+
+To ting er injisert i signaturen nettopp for at dette skal gå:
+
+```ts
+sendOverdueReminders(now: Date = new Date(), db: DB = productionDb)
+```
+
+- **`now`** — testen bestemmer hva «over fristen» betyr, i stedet for å tukle
+  med systemklokka. Frister settes relativt til en fast `NOW`.
+- **`db`** — testen sender inn SQLite-klienten fra `db-mock`, som har kjørt de
+  samme migrasjonene som D1. Spørringen som testes er den ekte.
+
+E-posten fanges med et spy, ikke en mock av hele modulen:
+
+```ts
+const send = vi.spyOn(mailer, "send").mockResolvedValue(true);
+```
+
+Det er grunnen til at `src/lib/email.ts` eksporterer et **objekt** med en
+metode og ikke en løs funksjon: `vi.spyOn` kan ikke overskrive en
+ES-modul-eksport, men den kan bytte ut en metode på et objekt.
+
+Det testene faktisk dekker:
+
+Testnavnene er på engelsk, som i resten av suiten:
+
+| Test | Hva den sikrer |
+| --- | --- |
+| `mails the owner about a task that is past its due date` | Lykkelig sti, med riktig mottaker og emne |
+| `leaves tasks that still have time alone` | `dueDate`-filteret |
+| `leaves completed tasks alone` | `completed`-filteret |
+| `includes tasks where completed is NULL` | Trerverdi-logikken over |
+| **`is idempotent — the second run sends nothing`** | Andre kjøring sender ingenting |
+| `stamps reminder_sent_at on the rows that were actually sent` | Sideeffekten i databasen, ikke bare returverdien |
+| `leaves reminder_sent_at empty when sending fails, so it is retried` | At en feilet e-post prøves igjen |
+| `sends one mail per task, to the right owner` | Join-en mot `users` |
+| `does nothing against an empty database` | Ingen krasj når det ikke er noe å gjøre |
+
+#### 2. Trigg jobben for hånd, i ekte runtime
+
+Vitest kjører i Node. Vil du se at `scheduled`-eksporten faktisk er koblet opp,
+og at spørringen går mot ekte D1, kan du kalle `scheduled`-handleren over HTTP
+mens `pnpm dev` kjører:
+
+```bash
+pnpm migrate:dev
+pnpm seed
+pnpm dev
+```
+
+I et annet terminalvindu:
+
+```bash
+curl "http://localhost:5173/cdn-cgi/handler/scheduled?cron=0+7+*+*+*"
+```
+
+`cron`-parameteret er det `event.cron` blir, så det er dette som avgjør hvilken
+gren i `switch`-en som kjører. Mellomrommene må kodes som `+` eller `%20`.
+
+I terminalen der `pnpm dev` kjører, ser du:
+
+```
+[email] -> test@testuser.io: Oppgaven "Task 3" har gått over fristen
+[reminders] fant 1, sendte 1, feilet 0
+```
+
+Seed-dataene inneholder «Task 3» med frist to dager tilbake i tid, nettopp så
+det finnes noe å finne.
+
+Kjør den **en gang til**, og du ser idempotensen med egne øyne:
+
+```
+[reminders] fant 0, sendte 0, feilet 0
+```
+
+Vil du kjøre den om igjen for ekte, nullstill databasen med `pnpm seed`.
+
+Send et uttrykk som ikke er registrert, og du får `default`-grenen:
+
+```bash
+curl "http://localhost:5173/cdn-cgi/handler/scheduled?cron=*+*+*+*+*"
+# [scheduled] Ukjent cron-uttrykk: * * * * *
+```
+
+Det er akkurat den feilen du får hvis strengene i `wrangler.jsonc` og
+`src/scheduled/index.ts` sklir fra hverandre — verdt å se en gang, så du
+kjenner den igjen.
+
+> Endepunktet finnes bare lokalt. `/cdn-cgi/`-stier er reservert av Cloudflare
+> og er ikke tilgjengelige på en deployet worker, så dette er ingen bakdør i
+> produksjon.
+
+#### 3. I skyen
+
+Cron-triggere kjører aldri lokalt av seg selv — bare i en deployet worker.
+
+```bash
+pnpm release             # bygger og deployer, inkludert triggerne
+npx wrangler tail        # strøm logger mens du venter på 07:00 UTC
+```
+
+`wrangler tail` viser `console.log`-linjene fra jobben. Triggerne dine ligger
+også under **Workers → din worker → Settings → Triggers** i Cloudflare-
+dashbordet, hvor du ser når de sist kjørte.
+
+Vil du ikke vente til 07:00, sett midlertidig `"*/2 * * * *"` i `triggers.crons`
+(og i `src/scheduled/index.ts`), deploy, og se den kjøre hvert andre minutt.
+Husk å sette den tilbake.
+
+---
+
+### Å ta dette videre
+
+- **Ekte e-post.** Bytt kroppen i `mailer.send`. Enten Cloudflares
+  `send_email`-binding (Email Routing, krever verifiserte adresser), eller et
+  HTTP-API som Resend eller Postmark med nøkkelen i
+  `wrangler secret put RESEND_API_KEY`. Resten av koden er uendret — det er
+  derfor sendingen ligger i sin egen fil.
+- **Nullstill varselet når fristen flyttes.** I dag varsles en oppgave én gang,
+  for alltid. Skal en utsatt frist gi et nytt varsel, sett
+  `reminderSentAt: null` i `tasksService.update` når `dueDate` er med i
+  patchen.
+- **Flere jobber.** Legg til uttrykket i `triggers.crons`, en konstant i
+  `src/scheduled/index.ts` og en `case`. Nattlig opprydding av gamle rader er
+  det vanlige neste steget.
+- **Mange rader.** Løkka sender én e-post om gangen. Det holder her, men en
+  jobb som skal ut til tusenvis bør batche, eller legge på en kø (Cloudflare
+  Queues), så en enkelt kjøring ikke går på tidsbudsjettet.
+
+---
+
 ## Tester
 
 `pnpm test` kjører Vitest-suiten. Testene går mot en ekte database — en
 in-memory SQLite som kjører de samme migrasjonene som D1, så skjemaet er
 identisk med produksjon. Oppskriften ligger i [`src/test/README.md`](src/test/README.md).
+
+Cron-jobben testes med nøyaktig det samme oppsettet. Se
+[Slik tester du det](#slik-tester-du-det) under Cron for hvorfor det går, og
+hva de testene dekker.
 
 ### E2E med Playwright
 
