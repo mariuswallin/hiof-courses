@@ -5,6 +5,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 
 import { createDatabase } from "@/db";
+import { users, sessions, accounts, verifications } from "@/db/schema";
 
 if (!env.BETTER_AUTH_SECRET) {
   throw new Error(
@@ -14,7 +15,17 @@ if (!env.BETTER_AUTH_SECRET) {
 }
 
 export const auth = betterAuth({
-  database: drizzleAdapter(createDatabase(env.DB), { provider: "sqlite" }),
+  // better-auth looks tables up by model name (user, session, ...), while our
+  // schema exports them in plural (users, sessions, ...). Map them explicitly.
+  database: drizzleAdapter(createDatabase(env.DB), {
+    provider: "sqlite",
+    schema: {
+      user: users,
+      session: sessions,
+      account: accounts,
+      verification: verifications,
+    },
+  }),
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
 

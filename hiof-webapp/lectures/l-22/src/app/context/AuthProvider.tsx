@@ -2,14 +2,20 @@
 
 "use client";
 
-import { createContext, useState, useCallback, type ReactNode } from "react";
-import type { SafeUser } from "@/db/schema";
+import {
+  createContext,
+  use,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
+import type { AuthUser } from "@/app/types/auth";
 
 export interface AuthContextType {
-  user: SafeUser | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (user: SafeUser) => void;
+  login: (user: AuthUser) => void;
   logout: () => void;
 }
 
@@ -17,17 +23,17 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 interface AuthProviderProps {
   children: ReactNode;
-  initialUser?: SafeUser | null;
+  initialUser?: AuthUser | null;
 }
 
 export function AuthProvider({
   children,
   initialUser = null,
 }: AuthProviderProps) {
-  const [user, setUser] = useState<SafeUser | null>(initialUser);
+  const [user, setUser] = useState<AuthUser | null>(initialUser);
 
   // Login handler oppdaterer user state
-  const login = useCallback((newUser: SafeUser) => {
+  const login = useCallback((newUser: AuthUser) => {
     setUser(newUser);
   }, []);
 
@@ -49,4 +55,14 @@ export function AuthProvider({
   };
 
   return <AuthContext value={value}>{children}</AuthContext>;
+}
+
+export function useAuth(): AuthContextType {
+  const context = use(AuthContext);
+
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+
+  return context;
 }

@@ -1,5 +1,13 @@
 // src/db/schema/index.ts
 
-export * from "./user-schema";
+export {
+  users,
+  sessions,
+  accounts,
+  verifications,
+  type User,
+  type Session,
+} from "./auth-schema";
+export { userRelations } from "./user-schema";
 export * from "./question-schema";
 export * from "./answer-schema";

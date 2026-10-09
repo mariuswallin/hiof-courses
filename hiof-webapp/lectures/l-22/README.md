@@ -1,7 +1,33 @@
 # l-22 — Client-side autentisering med Context og UI-komponenter
 
 Context-basert auth-state, custom hooks og UI-komponenter som snakker med
-server-side authentication. RedwoodSDK + Drizzle/D1 + Tailwind.
+server-side autentisering fra `l-20` (better-auth). RedwoodSDK + Drizzle/D1 + Tailwind.
+
+## Bygger på l-20 (better-auth)
+
+Auth-laget er kopiert uendret fra `l-20`. Leksjon 21 (bygg auth selv) er valgfri, og `l-22` bruker ikke koden derfra.
+
+```
+src/auth/auth.ts                     better-auth-konfig + admin-plugin (rolle, ban)
+src/auth/middleware.ts               authMiddleware setter ctx.user og ctx.session
+src/db/schema/auth-schema.ts         user / session / account / verification
+src/features/auth/actions/auth.ts    login / register / logout Server Actions
+```
+
+`src/auth/auth.ts` sender tabellene eksplisitt til `drizzleAdapter` (`schema: { user: users, ... }`). Skjemaet eksporterer tabellene i flertall (`users`, `sessions`), mens better-auth slår dem opp på modellnavn (`user`, `session`).
+
+## Det l-22 legger til
+
+```
+src/app/types/auth.ts                         AuthUser (= better-auth sin user) og UserRole
+src/app/lib/auth/role.ts                      isAdmin / hasRole / canEditQuestion ...
+src/app/middleware/authorization.ts           requireAuth / requireRole / requireAdmin (interruptors)
+src/app/context/AuthProvider.tsx              Context med user, isAuthenticated, isAdmin, og useAuth()
+src/app/components/layouts/MainLayout.tsx     henter ctx.user og sender den til Navigation
+src/app/components/shared/Navigation.tsx      navn, rolle-merke og logg ut
+src/app/components/auth/forms/LoginForm.tsx   e-post + passord via useActionState
+src/app/components/auth/forms/RegisterForm.tsx
+```
 
 ---
 
@@ -18,12 +44,25 @@ server-side authentication. RedwoodSDK + Drizzle/D1 + Tailwind.
 ## Kom i gang
 
 ```bash
+# .dev.vars må inneholde (se .env.example):
+# BETTER_AUTH_SECRET=<minimum 32 tegn tilfeldig>
+# BETTER_AUTH_URL=http://localhost:5173
+
 pnpm install
 pnpm migrate:dev   # kjører drizzle/-migrasjonene mot lokal D1
+pnpm db:seed       # testbrukere + spørsmål og svar
 pnpm dev
 ```
 
 Åpne <http://localhost:5173>.
+
+Testbrukere fra `pnpm db:seed` (logg inn med e-post):
+
+| E-post               | Passord          | Rolle |
+| -------------------- | ---------------- | ----- |
+| admin@example.com    | adminadmin       | admin |
+| student@example.com  | studentstudent   | user  |
+| student2@example.com | student2student2 | user  |
 
 Lokal D1 er en SQLite-fil under `.wrangler/` — du trenger **ikke** Cloudflare-konto
 eller å fylle inn `database_id` for å komme i gang.

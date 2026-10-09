@@ -1,47 +1,60 @@
 // src/db/seed.ts
 
-import { answers, questions, users } from "./schema";
+import {
+  accounts,
+  answers,
+  questions,
+  sessions,
+  users,
+  verifications,
+} from "./schema";
 import { defineScript } from "rwsdk/worker";
 import { getDb, setupDb } from ".";
+import { auth } from "@/auth/auth";
 
 export default defineScript(async ({ env }) => {
   try {
     await setupDb(env.DB);
     const db = await getDb();
-    await db.delete(users);
-    await db.delete(questions);
+
+    // Children first, so no foreign key points at a deleted row
     await db.delete(answers);
+    await db.delete(questions);
+    await db.delete(sessions);
+    await db.delete(accounts);
+    await db.delete(verifications);
+    await db.delete(users);
 
-    // Create test user
-    const [admin] = await db
-      .insert(users)
-      .values({
-        username: "admin",
+    // Users are created through better-auth, so the password is hashed and a
+    // credential account is linked. The admin plugin's createUser can be
+    // called from the server without headers, and it can set the role.
+    // Log in with e-mail + password.
+    const { user: admin } = await auth.api.createUser({
+      body: {
+        name: "Admin",
         email: "admin@example.com",
+        password: "adminadmin",
         role: "admin",
-        passwordHash: "adminadmin",
-      })
-      .returning();
+      },
+    });
 
-    const [student] = await db
-      .insert(users)
-      .values({
-        username: "student",
+    const { user: student } = await auth.api.createUser({
+      body: {
+        name: "Student",
         email: "student@example.com",
+        password: "studentstudent",
         role: "user",
-        passwordHash: "studentstudent",
-      })
-      .returning();
+      },
+    });
 
-    const [studentTwo] = await db
-      .insert(users)
-      .values({
-        username: "student2",
+    const { user: studentTwo } = await auth.api.createUser({
+      body: {
+        name: "Student 2",
         email: "student2@example.com",
+        password: "student2student2",
         role: "user",
-        passwordHash: "student2student2",
-      })
-      .returning();
+      },
+    });
 
     // Create multiple test questions some with answers
     const [question1, question2, question3] = await db

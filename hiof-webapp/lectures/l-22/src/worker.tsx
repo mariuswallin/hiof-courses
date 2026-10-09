@@ -14,32 +14,27 @@ import { QuestionEditPage } from "@/app/components/questions/pages/QuestionEditP
 import { QuestionListPage } from "@/app/components/questions/pages/QuestionListPage";
 import { QuestionCreatePage } from "@/app/components/questions/pages/QuestionCreatePage";
 
-import type { AuthContext } from "@/app/types/auth";
+// Auth from l-20 (better-auth): authMiddleware sets ctx.user and ctx.session
+import { auth } from "@/auth/auth";
+import { authMiddleware } from "@/auth/middleware";
 import { requireAdmin, requireAuth } from "@/app/middleware/authorization";
-import { authenticationMiddleware } from "@/app/middleware/authentication";
 import LoginPage from "@/app/components/auth/pages/LoginPage";
 import RegisterPage from "@/app/components/auth/pages/RegisterPage";
-import { authService } from "@/app/api/auth/authService";
-import {
-  createCookieResponse,
-  createErrorResponse,
-} from "@/app/lib/utils/response";
-import { Errors } from "@/app/types/errors";
 
-import { RegisterDTOSchema } from "@/app/lib/schema/auth/auth-dtos";
 import { MainLayout } from "@/app/components/layouts/MainLayout";
 import { AnswerListPage } from "@/app/components/answers/pages/AnswerListPage";
 import { AnswerCreatePage } from "@/app/components/answers/pages/AnswerCreatePage";
 
 export interface Env {
   DB: D1Database;
+  BETTER_AUTH_SECRET: string;
+  BETTER_AUTH_URL: string;
 }
 
-// Expands context to have authcontext
-// Prevent type errors using ctx.user or ctx.session
+// ctx.user and ctx.session are typed in src/auth/middleware.ts
 export type AppContext = {
   db: DB;
-} & AuthContext;
+};
 
 export default defineApp([
   setCommonHeaders(),
@@ -49,7 +44,11 @@ export default defineApp([
     // can use it from ctx.db in handlers
     ctx.db = await setupDb(env.DB);
   },
-  authenticationMiddleware, // Adding this to set the user and session
+  authMiddleware, // Sets ctx.user and ctx.session (null when signed out)
+
+  // better-auth handles /api/auth/* (sign-in, sign-up, sign-out, get-session)
+  route("/api/auth/*", ({ request }) => auth.handler(request)),
+
   route("/api/health", () => {
     return new Response(
       JSON.stringify({
@@ -71,39 +70,6 @@ export default defineApp([
   }),
   // API routes
   prefix("/api/v1/questions", questionRoutes),
-  // Auth routes if needed as an api-route
-  prefix("/api/v1/auth", [
-    //route("/login", async (ctx) => authService.login(ctx)),
-    route("/register", async (ctx) => {
-      const body = await ctx.request.json();
-      const parsedData = RegisterDTOSchema.safeParse(body);
-      if (!parsedData.success) {
-        return createErrorResponse(
-          Errors.VALIDATION_ERROR,
-          `Validation failed: ${parsedData.error.message}`,
-          400
-        );
-      }
-
-      const { username, email, password } = parsedData.data;
-
-      const result = await authService.register({
-        username,
-        email,
-        password,
-      });
-
-      if (!result.success) {
-        return createErrorResponse(
-          Errors.INTERNAL_SERVER_ERROR,
-          "Failed to register user",
-          500
-        );
-      }
-
-      return createCookieResponse(result.data.session.id);
-    }),
-  ]),
   render(Document, [
     route("/", () => <Questions />),
     // Simple pages to render

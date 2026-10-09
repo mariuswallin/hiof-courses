@@ -2,7 +2,6 @@
 
 import type { Pagination } from "@/app/types/api";
 import { Errors, type ErrorCode } from "@/app/types/errors";
-import { clearSessionCookie, setSessionCookie } from "../auth/session";
 
 // Base headers for API responses
 const baseHeaders = {
@@ -105,29 +104,6 @@ export function codeToStatus(code: ErrorCode): number {
     default:
       return 500; // Default to internal server error
   }
-}
-
-export function createCookieResponse(sessionId: string): Response {
-  const cookie = setSessionCookie(sessionId);
-
-  return new Response(null, {
-    status: 200,
-    headers: {
-      "Set-Cookie": cookie,
-      "Content-Type": "application/json",
-      "Cache-Control": "no-cache",
-    },
-  });
-}
-
-export function removeCookieResponse(): Response {
-  const cookie = clearSessionCookie();
-  return new Response(null, {
-    status: 200,
-    headers: {
-      "Set-Cookie": cookie,
-    },
-  });
 }
 
 export function createAuthenticationResponse() {

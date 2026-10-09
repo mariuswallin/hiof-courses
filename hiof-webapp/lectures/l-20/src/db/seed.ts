@@ -1,25 +1,51 @@
 // src/db/seed.ts
 
-import { answers, questions, users } from "./schema";
+import {
+  accounts,
+  answers,
+  questions,
+  sessions,
+  users,
+  verifications,
+} from "./schema";
 import { defineScript } from "rwsdk/worker";
 import { getDb, setupDb } from ".";
+import { auth } from "@/auth/auth";
 
 export default defineScript(async ({ env }) => {
   try {
     await setupDb(env.DB);
     const db = await getDb();
-    await db.delete(users);
-    await db.delete(questions);
-    await db.delete(answers);
 
-    // Create test user
-    const [user] = await db
-      .insert(users)
-      .values({
+    // Children first, so no foreign key points at a deleted row
+    await db.delete(answers);
+    await db.delete(questions);
+    await db.delete(sessions);
+    await db.delete(accounts);
+    await db.delete(verifications);
+    await db.delete(users);
+
+    // Users are created through better-auth, so the password is hashed and a
+    // credential account is linked. The admin plugin's createUser can be
+    // called from the server without headers, and it can set the role.
+    // Log in with e-mail + password.
+    const { user: admin } = await auth.api.createUser({
+      body: {
+        name: "Admin",
+        email: "admin@example.com",
+        password: "adminadmin",
+        role: "admin",
+      },
+    });
+
+    await auth.api.createUser({
+      body: {
         name: "Test User",
         email: "test@example.com",
-      })
-      .returning();
+        password: "testtest",
+        role: "user",
+      },
+    });
 
     // Create multiple test questions some with answers
     const [question1, question2, question3] = await db
@@ -27,17 +53,17 @@ export default defineScript(async ({ env }) => {
       .values([
         {
           question: "Hva er TypeScript?",
-          authorId: user.id,
+          authorId: admin.id,
           publishedAt: new Date(),
         },
         {
           question: "Hva er forskjellen på var, let og const?",
-          authorId: user.id,
+          authorId: admin.id,
           publishedAt: new Date(),
         },
         {
           question: "Hvordan har du det i dag?",
-          authorId: user.id,
+          authorId: admin.id,
         },
       ])
       .returning();

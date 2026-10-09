@@ -60,7 +60,7 @@ interface DbQuestion {
   question: string;
   status: QuestionStatus;
   createdAt: Date;
-  authorId: number | null;
+  authorId: string | null;
   updatedAt: Date | null; // Optional field for tracking updates
   publishedAt: Date | null; // Optional field for tracking publication time
   deletedAt: Date | null; // Optional field for tracking deletion time (soft delete)

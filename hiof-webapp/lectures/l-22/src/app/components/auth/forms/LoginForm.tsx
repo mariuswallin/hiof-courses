@@ -5,7 +5,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
-import { login } from "@/app/api/auth/authServerActions";
+import { login, type AuthState } from "@/features/auth/actions/auth";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -23,31 +23,25 @@ function SubmitButton() {
 
 export function LoginForm() {
   const [state, formAction] = useActionState(
-    async (prevState: any, formData: FormData) => {
+    async (prevState: AuthState, formData: FormData) => {
       const result = await login(prevState, formData);
 
-      if (result.success) {
-        window.location.href = "/";
+      // The session cookie is set. A full page load lets the layout read
+      // ctx.user from the new cookie.
+      if (result.ok) {
+        window.location.href = "/questions";
       }
       return result;
     },
-    {
-      success: false,
-      error: "",
-      state: {
-        user: null,
-        session: null,
-      },
-    }
+    { ok: false }
   );
 
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white rounded-lg shadow-lg p-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Logg inn</h1>
-        <p>{JSON.stringify(state)}</p>
 
-        {!state.success && state.error && (
+        {state.error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
             <p className="text-sm">{state.error}</p>
           </div>
@@ -56,20 +50,25 @@ export function LoginForm() {
         <form action={formAction} className="space-y-4">
           <div>
             <label
-              htmlFor="username"
+              htmlFor="email"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Brukernavn
+              E-post
             </label>
             <input
-              id="username"
-              name="username"
-              type="text"
+              id="email"
+              name="email"
+              type="email"
               required
-              autoComplete="username"
+              autoComplete="email"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Skriv inn brukernavn"
+              placeholder="din@epost.no"
             />
+            {state.fieldErrors?.email && (
+              <p className="mt-1 text-xs text-red-600">
+                {state.fieldErrors.email}
+              </p>
+            )}
           </div>
           <div>
             <label
@@ -87,6 +86,11 @@ export function LoginForm() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Skriv inn passord"
             />
+            {state.fieldErrors?.password && (
+              <p className="mt-1 text-xs text-red-600">
+                {state.fieldErrors.password}
+              </p>
+            )}
           </div>
 
           <SubmitButton />

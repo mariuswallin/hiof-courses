@@ -37,7 +37,7 @@ export function mapQuestionToDTO(question: QuestionWithAnswers): QuestionDTO {
     ...(updatedAtValue && { updatedAt: updatedAtValue }),
     ...(publishedAtValue && { publishedAt: publishedAtValue }),
     ...(deletedAtValue && { deletedAt: deletedAtValue }),
-    // authorId is integer in schema
+    // authorId is a better-auth user id (string)
     ...(question.authorId && { authorId: question.authorId }),
   };
 }
@@ -86,7 +86,7 @@ export function mapCreateQuestionDTOToDomain(dto: CreateQuestionDTO) {
     updatedAt: now,
     // publishedAt should only be set when status is 'published'
     ...(dto.status === "published" && { publishedAt: now }),
-    // authorId is integer in schema
+    // authorId is a better-auth user id (string)
     ...(dto.authorId && { authorId: dto.authorId }),
   };
 }
@@ -167,8 +167,8 @@ function isValidQuestionModel(data: unknown): data is QuestionWithAnswers {
     ["draft", "published", "archived", "deleted"].includes(
       (data as any).status
     ) &&
-    // Validate authorId is number if present
-    (!("authorId" in data) || typeof (data as any).authorId === "number")
+    // Validate authorId is string if present (better-auth user IDs)
+    (!("authorId" in data) || typeof (data as any).authorId === "string")
   );
 }
 

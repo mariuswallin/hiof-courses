@@ -1,7 +1,7 @@
 // src/db/schema/answer-schema.ts
 
 import { createId } from "@/app/lib/utils/id";
-import { sqliteTable, text, integer, int } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { questions } from "./question-schema";
 import { relations } from "drizzle-orm";
 import { users } from "./user-schema";
@@ -15,7 +15,8 @@ export const answers = sqliteTable("answers", {
   questionId: text("question_id")
     .notNull()
     .references(() => questions.id, { onDelete: "cascade" }),
-  authorId: int("author_id")
+  // better-auth user IDs are strings, so author_id is text
+  authorId: text("author_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   createdAt: integer("created_at", { mode: "timestamp" })

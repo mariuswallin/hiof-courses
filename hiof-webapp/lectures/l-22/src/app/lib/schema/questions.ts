@@ -16,7 +16,7 @@ export const QuestionCreateSchema = z
     updatedAt: z.date().optional(),
     deletedAt: z.date().optional(),
     publishedAt: z.date().optional(),
-    authorId: z.coerce.number().min(1, "Author ID is required"),
+    authorId: z.string().min(1, "Author ID is required"),
   })
   .refine((data) => {
     // If status is published, publishedAt must be set

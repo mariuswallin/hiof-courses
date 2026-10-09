@@ -1,19 +1,8 @@
 // src/app/types/auth.ts
 
-import type { SafeUser, Session } from "@/db/schema";
+import type { Session } from "@/auth/auth";
 
-export interface AuthContext {
-  user: SafeUser | null;
-  session: Session | null;
-}
+// The user better-auth puts in ctx.user (includes role/banned from the admin plugin)
+export type AuthUser = Session["user"];
 
-export interface LoginCredentials {
-  username: string;
-  password: string;
-}
-
-export interface RegisterCredentials {
-  username: string;
-  email: string;
-  password: string;
-}
+export type UserRole = "user" | "admin";

@@ -1,11 +1,10 @@
 // src/app/components/auth/forms/RegisterForm.tsx
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 
-import { useState } from "react";
-import { register } from "@/app/api/auth/authServerActions";
+import { register, type AuthState } from "@/features/auth/actions/auth";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -68,21 +67,25 @@ function PasswordStrengthIndicator({ password }: { password: string }) {
 
 export function RegisterForm() {
   const [password, setPassword] = useState("");
-  const [state, formAction] = useActionState(register, {
-    success: false,
-    error: "",
-    state: {
-      user: null,
-      session: null,
+  const [state, formAction] = useActionState(
+    async (prevState: AuthState, formData: FormData) => {
+      const result = await register(prevState, formData);
+
+      // better-auth has autoSignIn on, so the user is signed in after register
+      if (result.ok) {
+        window.location.href = "/questions";
+      }
+      return result;
     },
-  });
+    { ok: false }
+  );
 
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white rounded-lg shadow-lg p-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Opprett konto</h1>
 
-        {!state.success && state.error && (
+        {state.error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
             <p className="text-sm">{state.error}</p>
           </div>
@@ -91,23 +94,25 @@ export function RegisterForm() {
         <form action={formAction} className="space-y-4">
           <div>
             <label
-              htmlFor="username"
+              htmlFor="name"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Brukernavn
+              Navn
             </label>
             <input
-              id="username"
-              name="username"
+              id="name"
+              name="name"
               type="text"
               required
-              autoComplete="username"
+              autoComplete="name"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Velg et brukernavn"
+              placeholder="Ditt navn"
             />
-            <p className="mt-1 text-xs text-gray-500">
-              3-30 tegn, kun bokstaver, tall og understrek
-            </p>
+            {state.fieldErrors?.name && (
+              <p className="mt-1 text-xs text-red-600">
+                {state.fieldErrors.name}
+              </p>
+            )}
           </div>
 
           <div>
@@ -126,6 +131,11 @@ export function RegisterForm() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="din@epost.no"
             />
+            {state.fieldErrors?.email && (
+              <p className="mt-1 text-xs text-red-600">
+                {state.fieldErrors.email}
+              </p>
+            )}
           </div>
 
           <div>
@@ -148,8 +158,14 @@ export function RegisterForm() {
             />
             <PasswordStrengthIndicator password={password} />
             <p className="mt-1 text-xs text-gray-500">
-              Minst 8 tegn med store og små bokstaver, tall
+              Minst 8 tegn. Store og små bokstaver og tall gir et sterkere
+              passord
             </p>
+            {state.fieldErrors?.password && (
+              <p className="mt-1 text-xs text-red-600">
+                {state.fieldErrors.password}
+              </p>
+            )}
           </div>
 
           <SubmitButton />

@@ -25,6 +25,9 @@ const registerSchema = loginSchema.extend({
  * better-auth does not set cookies on our response itself. With
  * `returnHeaders: true` we get the Set-Cookie headers back, and have to copy
  * them onto the response going to the browser.
+ *
+ * No `Location` header here: rwsdk only follows it on a 3xx response, and an
+ * action answers 200. The form navigates when the action returns `ok: true`.
  */
 function applyAuthHeaders(headers: Headers) {
   const { response } = requestInfo;
@@ -51,7 +54,7 @@ export async function login(
     return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
   }
 
-  const { request, response } = requestInfo;
+  const { request } = requestInfo;
 
   try {
     const { headers } = await auth.api.signInEmail({
@@ -60,7 +63,6 @@ export async function login(
       returnHeaders: true,
     });
     applyAuthHeaders(headers);
-    response.headers.set("Location", "/");
     return { ok: true };
   } catch {
     return { ok: false, error: "Ugyldig e-post eller passord" };
@@ -80,7 +82,7 @@ export async function register(
     return { ok: false, fieldErrors: toFieldErrors(parsed.error) };
   }
 
-  const { request, response } = requestInfo;
+  const { request } = requestInfo;
 
   try {
     const { headers } = await auth.api.signUpEmail({
@@ -89,7 +91,6 @@ export async function register(
       returnHeaders: true,
     });
     applyAuthHeaders(headers);
-    response.headers.set("Location", "/");
     return { ok: true };
   } catch (error) {
     const message =
@@ -99,11 +100,11 @@ export async function register(
 }
 
 export async function logout() {
-  const { request, response } = requestInfo;
+  const { request } = requestInfo;
   const { headers } = await auth.api.signOut({
     headers: request.headers,
     returnHeaders: true,
   });
   applyAuthHeaders(headers); // Set-Cookie that clears the session
-  response.headers.set("Location", "/login");
+  return { ok: true as const };
 }

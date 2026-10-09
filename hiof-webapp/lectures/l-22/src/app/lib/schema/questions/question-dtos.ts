@@ -9,7 +9,7 @@ export const QuestionDTOSchema = z.object({
   createdAt: z.string(),
   answersCount: z.number().int().min(0),
   status: z.enum(["draft", "published", "archived", "deleted"]),
-  authorId: z.coerce.number().optional(),
+  authorId: z.string().optional(),
 });
 
 export const QuestionDetailDTOSchema = QuestionDTOSchema.extend({
@@ -27,9 +27,9 @@ export const CreateQuestionDTOSchema = z.object({
   question: z.string().min(5).max(500),
   status: z.enum(["draft", "published"]).default("draft"),
   // metadata: z.record(z.unknown()).optional(), // Flexible metadata as JSON (not applicable for us)
-  authorId: z.coerce.number().min(1, {
+  authorId: z.string().min(1, {
     error: "Mangler eller ugyldig id",
-  }), // Author ID, can be set by the API
+  }), // Author ID (better-auth user id), set from ctx.user
 });
 
 export const UpdateQuestionDTOSchema = CreateQuestionDTOSchema.extend({

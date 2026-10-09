@@ -38,8 +38,9 @@ src/worker.tsx                          authMiddleware + /api/auth/* mounted
 # BETTER_AUTH_URL=http://localhost:5173
 
 pnpm install
-pnpm db:generate
-pnpm db:migrate:dev
+pnpm migrate:new   # bare når du har endret skjemaet
+pnpm migrate:dev
+pnpm db:seed       # admin@example.com / adminadmin og test@example.com / testtest
 pnpm dev
 ```
 
@@ -47,7 +48,7 @@ pnpm dev
 
 - `POST /api/auth/sign-in/email` med `{ email, password }` returnerer 200 + session-cookie
 - `GET /api/auth/get-session` med cookien returnerer session+user
-- En route som kaller `requireAdmin()` returnerer 403 for vanlige brukere
+- Legger du `requireAdmin()` på en rute, får vanlige brukere 403 og anonyme 401 (ingen rute i l-20 bruker den ennå)
 
 ## Avansert: bygge auth selv
 

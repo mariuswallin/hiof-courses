@@ -1,14 +1,17 @@
 // src/app/middleware/authorization.ts
 
-import type { AppContext } from "@/worker";
-import type { UserRole } from "@/db/schema";
+import type { RequestInfo } from "rwsdk/worker";
+import type { UserRole } from "@/app/types/auth";
 
 import { Errors } from "../types/errors";
 import { hasRole } from "../lib/auth/role";
 
+// ctx.user is set by authMiddleware (src/auth/middleware.ts) on every request.
+// These interruptors RETURN a Response to stop the route. They never throw.
+
 // Require authentication
 export function requireAuth() {
-  return ({ ctx }: { ctx: AppContext }): Response | void => {
+  return ({ ctx }: RequestInfo): Response | void => {
     if (!ctx.user) {
       return new Response(
         JSON.stringify({
@@ -25,12 +28,13 @@ export function requireAuth() {
       );
     }
 
-    if (!ctx.user.isActive) {
+    // `banned` comes from better-auth's admin plugin
+    if (ctx.user.banned) {
       return new Response(
         JSON.stringify({
           error: {
             code: Errors.FORBIDDEN,
-            message: "Account deactivated",
+            message: "Account banned",
           },
         }),
         {
@@ -44,7 +48,7 @@ export function requireAuth() {
 
 // Require role
 export function requireRole(role: UserRole) {
-  return ({ ctx }: { ctx: AppContext }): Response | void => {
+  return ({ ctx }: RequestInfo): Response | void => {
     if (!ctx.user) {
       return new Response(null, {
         status: 302,

@@ -1,19 +1,13 @@
 // app/components/layouts/MainLayout.tsx
 
-import { logout } from "@/app/api/auth/authServerActions";
 import { AuthProvider } from "@/app/context/AuthProvider";
 import type { LayoutProps } from "rwsdk/router";
 import { Navigation } from "../shared/Navigation";
 
-export async function MainLayout({ children, requestInfo }: LayoutProps) {
+export function MainLayout({ children, requestInfo }: LayoutProps) {
+  // Set by authMiddleware. better-auth's getSession returns null for an
+  // expired session, so there is no expiry check to do here.
   const user = requestInfo?.ctx.user ?? null;
-  const session = requestInfo?.ctx.session;
-
-  const isExpired = session && session.expiresAt < new Date();
-
-  if (isExpired) {
-    await logout();
-  }
 
   return (
     <>

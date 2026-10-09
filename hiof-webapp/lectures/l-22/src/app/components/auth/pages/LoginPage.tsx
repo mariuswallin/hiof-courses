@@ -1,4 +1,4 @@
-// src/app/components/auth/pages/Login.tsx
+// src/app/components/auth/pages/LoginPage.tsx
 
 import { LoginForm } from "@/app/components/auth/forms/LoginForm";
 

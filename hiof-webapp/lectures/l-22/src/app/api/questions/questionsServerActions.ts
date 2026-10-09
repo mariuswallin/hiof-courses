@@ -30,12 +30,13 @@ export async function createQuestionAction(
   formData: FormData
 ): Promise<ServerResult<QuestionDTO>> {
   try {
-    // Parse form data
+    // Parse form data. The author is always the signed-in user (ctx.user from
+    // better-auth), never a value the client sends.
     const { ctx } = requestInfo;
     const rawData = {
       question: formData.get("question") as string,
       status: (formData.get("status") as string) || "draft",
-      authorId: formData.get("authorId") ?? ctx?.user?.id,
+      authorId: ctx.user?.id,
     };
 
     // Validate with Zod
@@ -189,10 +190,18 @@ export async function createAnswerAction(
 ): Promise<ServerResult<AnswerDetailDTO>> {
   try {
     const { ctx } = requestInfo;
+    if (!ctx.user) {
+      return {
+        success: false,
+        error: "Unauthorized",
+        code: Errors.UNAUTHORIZED,
+      };
+    }
+
     const rawData = {
       questionId: formData.get("questionId") as string,
       answer: formData.get("answer") as string,
-      authorId: formData.get("authorId") ?? ctx?.user?.id,
+      authorId: ctx.user.id,
     };
 
     // ... validate with dto
@@ -203,7 +212,7 @@ export async function createAnswerAction(
       .values({
         questionId: rawData.questionId,
         answer: rawData.answer,
-        authorId: Number(rawData.authorId),
+        authorId: rawData.authorId,
       })
       .returning();
 

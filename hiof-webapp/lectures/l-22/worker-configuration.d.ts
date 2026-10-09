@@ -6,6 +6,9 @@ declare namespace Cloudflare {
 		R2: R2Bucket;
 		DB: D1Database;
 		ASSETS: Fetcher;
+		// Secrets from .dev.vars (better-auth, see src/auth/auth.ts)
+		BETTER_AUTH_SECRET: string;
+		BETTER_AUTH_URL: string;
 	}
 }
 interface Env extends Cloudflare.Env {}

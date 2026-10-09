@@ -1,12 +1,12 @@
 // src/app/components/shared/Navigation.tsx
 "use client";
 
-import type { SafeUser } from "@/db/schema/user-schema";
-import { logout } from "../../api/auth/authServerActions";
+import type { AuthUser } from "@/app/types/auth";
+import { logout } from "@/features/auth/actions/auth";
 import { isAdmin, isUser } from "@/app/lib/auth/role";
 //import { useAuth } from "../hooks/useAuth";
 
-export function Navigation({ user }: { user: SafeUser | null }) {
+export function Navigation({ user }: { user: AuthUser | null }) {
   //const { user, isAuthenticated, isAdmin } = useAuth();
 
   const userIsAdmin = isAdmin(user);
@@ -14,10 +14,9 @@ export function Navigation({ user }: { user: SafeUser | null }) {
 
   const handleLogout = async () => {
     try {
-      // Call logout server action
+      // Call the logout server action (better-auth clears the session cookie)
       const result = await logout();
-      if (result.success) {
-        // The context logout handles the redirect
+      if (result.ok) {
         window.location.href = "/auth/login";
       }
     } catch (error) {
@@ -32,7 +31,7 @@ export function Navigation({ user }: { user: SafeUser | null }) {
           {/* Logo and main navigation */}
           <div className="flex items-center space-x-8">
             <a href="/" className="text-xl font-bold text-gray-900">
-              Spørsmålplattformen
+              Spørsmålsplattformen
             </a>
 
             <div className="hidden md:flex items-center space-x-4">
@@ -60,7 +59,7 @@ export function Navigation({ user }: { user: SafeUser | null }) {
             {userIsAuthenticated ? (
               <div className="flex items-center space-x-3">
                 <span className="text-sm text-gray-700">
-                  Hei, {user?.username}
+                  Hei, {user?.name}
                 </span>
 
                 {/* Role badge */}
